@@ -1,4 +1,4 @@
-## Nearby Places Comparison Tool
+## Benchmarking Places
 
 ### Overview
 
