@@ -3,7 +3,7 @@ import Map from './Components/Map'
 
 const App: React.FC = () => {
   return (
-    <div className="App" style={{margin: '0 25%'}}>
+    <div className="App" style={{margin: '0 5%'}}>
       <h1>Benchmarking Places</h1>
       <Map />
     </div>

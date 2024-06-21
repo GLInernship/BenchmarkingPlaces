@@ -144,7 +144,6 @@ const GridDivisionsMap: React.FC = () => {
     const lines: google.maps.Polyline[] = [];
     const labels: google.maps.Marker[] = [];
 
-    // Draw horizontal grid lines
     for (let i = 0; i <= M; i++) {
       const lat = ne.lat() - i * latStep;
       const lineCoords = [
@@ -163,7 +162,6 @@ const GridDivisionsMap: React.FC = () => {
       lines.push(gridLine);
     }
 
-    // Draw vertical grid lines
     for (let j = 0; j <= N; j++) {
       const lng = sw.lng() + j * lngStep;
       const lineCoords = [
@@ -182,7 +180,6 @@ const GridDivisionsMap: React.FC = () => {
       lines.push(gridLine);
     }
 
-    // Draw grid labels
     let labelIndex = 1;
     for (let i = 0; i < M; i++) {
       const lat1 = ne.lat() - i * latStep;
@@ -240,13 +237,14 @@ const GridDivisionsMap: React.FC = () => {
       <div className='search-container'>
         <input
           type="text"
+          className='locationSearch'
           placeholder="Search for a place"
           ref={searchInputRef}
-          
+          style={{marginBottom: '20px', width: '400px', height: '22px',  border: '1px solid #000', borderRadius: '4px', paddingLeft:'12px' }}
         />
       </div>
       <div className='map-container'>
-        <div style={{ width: '3000px', height: '400px', border: '1px solid #ccc', borderRadius: '4px' }} ref={mapRef}>
+        <div className='map' style={{ width: '9000px', height: '400px', border: '1px solid #ccc', borderRadius: '4px' }} ref={mapRef}>
           Loading Map...
         </div>
         <div className='coord1'>
