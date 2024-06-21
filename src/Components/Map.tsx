@@ -16,6 +16,7 @@ const GridDivisionsMap: React.FC = () => {
   const [gridDivisions, setGridDivisions] = useState<{ M: number; N: number }>({ M: 1, N: 1 });
   const [gridLines, setGridLines] = useState<google.maps.Polyline[]>([]);
   const [gridLabels, setGridLabels] = useState<google.maps.Marker[]>([]);
+  const [boundingBoxDetails, setBoundingBoxDetails] = useState<string[]>([]);
 
   useEffect(() => {
     if (!mapRef.current || map !== null) return;
@@ -143,7 +144,9 @@ const GridDivisionsMap: React.FC = () => {
 
     const lines: google.maps.Polyline[] = [];
     const labels: google.maps.Marker[] = [];
+    const boundingBoxDetails: string[] = [];
 
+    // Draw horizontal grid lines
     for (let i = 0; i <= M; i++) {
       const lat = ne.lat() - i * latStep;
       const lineCoords = [
@@ -162,6 +165,7 @@ const GridDivisionsMap: React.FC = () => {
       lines.push(gridLine);
     }
 
+    // Draw vertical grid lines
     for (let j = 0; j <= N; j++) {
       const lng = sw.lng() + j * lngStep;
       const lineCoords = [
@@ -180,6 +184,7 @@ const GridDivisionsMap: React.FC = () => {
       lines.push(gridLine);
     }
 
+    // Draw grid labels
     let labelIndex = 1;
     for (let i = 0; i < M; i++) {
       const lat1 = ne.lat() - i * latStep;
@@ -205,12 +210,24 @@ const GridDivisionsMap: React.FC = () => {
         });
 
         labels.push(label);
+
+        // Calculate bounding box details
+        const boxCoords = [
+          `Top-Left: (${lat1.toFixed(6)}, ${lng1.toFixed(6)})`,
+          `Top-Right: (${lat1.toFixed(6)}, ${lng2.toFixed(6)})`,
+          `Bottom-Left: (${lat2.toFixed(6)}, ${lng1.toFixed(6)})`,
+          `Bottom-Right: (${lat2.toFixed(6)}, ${lng2.toFixed(6)})`
+        ];
+        boundingBoxDetails.push(`Division ${labelIndex}:`);
+        boundingBoxDetails.push(...boxCoords);
+
         labelIndex++;
       }
     }
 
     setGridLines(lines);
     setGridLabels(labels);
+    setBoundingBoxDetails(boundingBoxDetails);
   };
 
   const clearGridDivisions = () => {
@@ -230,6 +247,7 @@ const GridDivisionsMap: React.FC = () => {
   const handleUndoButtonClick = () => {
     clearGridDivisions();
     clearGridLabels();
+    setBoundingBoxDetails([]);
   };
 
   return (
@@ -237,21 +255,21 @@ const GridDivisionsMap: React.FC = () => {
       <div className='search-container'>
         <input
           type="text"
-          className='locationSearch'
           placeholder="Search for a place"
           ref={searchInputRef}
-          style={{marginBottom: '20px', width: '400px', height: '22px',  border: '1px solid #000', borderRadius: '4px', paddingLeft:'12px' }}
+          className='mapinput'
         />
       </div>
       <div className='map-container'>
-        <div className='map' style={{ width: '9000px', height: '400px', border: '1px solid #ccc', borderRadius: '4px' }} ref={mapRef}>
+        <div style={{ width: '100%', height: '400px', border: '1px solid #ccc', borderRadius: '4px' }} ref={mapRef}>
           Loading Map...
         </div>
-        <div className='coord1'>
+        <div className='cord1'>
           {boundingBoxCoords.map((coord, index) => (
             <div className='coordinate' key={index}>{coord}</div>
           ))}
         </div>
+       
       </div>
       <div className='mapinput'>
         <label>Number of Rows (M):</label>
@@ -261,6 +279,11 @@ const GridDivisionsMap: React.FC = () => {
         <button onClick={handleEnterButtonClick}>Enter</button>
         <button onClick={handleUndoButtonClick}>Undo</button>
       </div>
+      <div className='bounding-box-details'>
+          {boundingBoxDetails.map((detail, index) => (
+            <div className='box-detail' key={index}>{detail}</div>
+          ))}
+        </div>
     </div>
   );
 };
