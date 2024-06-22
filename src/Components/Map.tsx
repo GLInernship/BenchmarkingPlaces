@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import './map.css';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE';
-
 interface GoogleMap extends google.maps.Map {}
 
 const GridDivisionsMap: React.FC = () => {
@@ -334,7 +333,7 @@ const GridDivisionsMap: React.FC = () => {
         <label>Number of Columns (N):</label>
         <input type="number" name="N" value={gridDivisions.N} onChange={handleGridDivisionsChange} />
         <button onClick={handleEnterButtonClick}>Enter</button>
-        <button onClick={handleUndoButtonClick}>Undo</button>
+        {/* <button onClick={handleUndoButtonClick}>Undo</button> */}
       </div>
       <div className='bounding-box-details'>
         {boundingBoxDetails.map((detail, index) => (
