@@ -218,6 +218,8 @@ const GridDivisionsMap: React.FC = () => {
           `Bottom-Left: (${lat2.toFixed(6)}, ${lng1.toFixed(6)})`,
           `Bottom-Right: (${lat2.toFixed(6)}, ${lng2.toFixed(6)})`
         ];
+        boundingBoxDetails.push(``);
+        boundingBoxDetails.push(`-----------------------`);
         boundingBoxDetails.push(`Division ${labelIndex}:`);
         boundingBoxDetails.push(...boxCoords);
 
