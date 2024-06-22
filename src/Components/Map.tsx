@@ -199,17 +199,26 @@ const GridDivisionsMap: React.FC = () => {
         const labelIndex = i * N + j + 1;
 
         // Draw grid label
+        const icon = {
+          url: 'https://imgs.search.brave.com/g-dExE8SKvkVmB8zFFK55jmu3dQOigkuC2FLNyhMfaw/rs:fit:860:0:0/g:ce/aHR0cHM6Ly93d3cu/cG5nbWFydC5jb20v/ZmlsZXMvMjMvQmxh/Y2stQ2lyY2xlLVBO/Ry1IRC5wbmc',
+          scaledSize: new google.maps.Size(32, 32),  // Adjust the size as needed
+          origin: new google.maps.Point(0, 0),  // Optional. The origin point of the icon
+          anchor: new google.maps.Point(16, 16)  // Optional. The anchor point of the icon (center)
+        };
+        
         const label = new google.maps.Marker({
           position: labelPosition,
           label: {
             text: `${labelIndex}`,
-            color: 'black',
+            color: 'yellow',
             fontSize: '12px',
             fontWeight: 'bold'
           },
+          icon: icon,
           map: map!,
         });
         labels.push(label);
+             
 
         // Calculate bounding box details
         const boxCoords = [
