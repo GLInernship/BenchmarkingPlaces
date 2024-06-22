@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './map.css';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual API key
+const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE';
 
 interface GoogleMap extends google.maps.Map {}
 
 const GridDivisionsMap: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [map, setMap] = useState<GoogleMap | undefined>(undefined); // Initialize as undefined
+  const [map, setMap] = useState<GoogleMap | undefined>(undefined);
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
   const [placePolygon, setPlacePolygon] = useState<google.maps.Polygon | null>(null);
@@ -270,13 +270,23 @@ const GridDivisionsMap: React.FC = () => {
 
   const displayRandomPOIs = (pois: { name: string, lat: number, lng: number }[]) => {
     pois.forEach(poi => {
+
+      const icon = {
+        url: 'https://www.pngall.com/wp-content/uploads/13/Red-Circle.png',
+        scaledSize: new google.maps.Size(12, 12),  // Adjust the size as needed
+        origin: new google.maps.Point(0, 0),  // Optional. The origin point of the icon
+        anchor: new google.maps.Point(16, 16)  // Optional. The anchor point of the icon (center)
+      };
+
       new google.maps.Marker({
         position: { lat: poi.lat, lng: poi.lng },
         map: map!,
-        title: poi.name
+        title: poi.name,
+        icon: icon
       });
     });
   };
+  
 
   const clearGridDivisions = () => {
     gridLines.forEach(line => {
