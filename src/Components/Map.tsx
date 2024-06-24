@@ -1,11 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './map.css';
+import { useNavigate } from 'react-router-dom';
+import { useGridContext } from './GridContext';
+
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual API key
 
 interface GoogleMap extends google.maps.Map {}
 
 const GridDivisionsMap: React.FC = () => {
+  const navigate = useNavigate();
+  const { setDivisionData, setPoiData } = useGridContext();
+
   const mapRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [map, setMap] = useState<GoogleMap | undefined>(undefined);
@@ -117,96 +123,93 @@ const GridDivisionsMap: React.FC = () => {
 
   const handleEnterButtonClick = () => {
     if (selectedPlace) {
-      drawGridDivisions();
+      const divisionData = drawGridDivisions();
+      setDivisionData(divisionData);
+      setPoiData(divisionData.flatMap(division => division.pois));
     }
   };
+  const handleNearbySearchClick = () => {
+    navigate('/nearby-search');
+  };
+
 
   const drawGridDivisions = () => {
-    if (!map || !selectedPlace) return;
-
+    if (!map || !selectedPlace) return [];
+  
     clearGridDivisions();
     clearGridLabels();
-
+  
     const bounds = selectedPlace.geometry!.viewport;
     const ne = bounds.getNorthEast();
     const sw = bounds.getSouthWest();
-    const boundsLatLng = [
-      { lat: ne.lat(), lng: ne.lng() },
-      { lat: sw.lat(), lng: ne.lng() },
-      { lat: sw.lat(), lng: sw.lng() },
-      { lat: ne.lat(), lng: sw.lng() }
-    ];
-
+  
     const M = gridDivisions.M;
     const N = gridDivisions.N;
-
+  
     const latStep = (ne.lat() - sw.lat()) / M;
     const lngStep = (ne.lng() - sw.lng()) / N;
-
+  
     const lines: google.maps.Polyline[] = [];
     const labels: google.maps.Marker[] = [];
-    const boundingBoxDetails: string[] = [];
-
+    const divisionData: any[] = [];
+  
     // Draw horizontal grid lines
-    for (let i = 0; i < M; i++) {
-      const lat1 = ne.lat() - i * latStep;
-      const lat2 = ne.lat() - (i + 1) * latStep;
-
-      // Draw horizontal grid line
+    for (let i = 0; i <= M; i++) {
+      const lat = ne.lat() - i * latStep;
       const lineCoords = [
-        { lat: lat1, lng: ne.lng() },
-        { lat: lat1, lng: sw.lng() }
+        { lat, lng: sw.lng() },
+        { lat, lng: ne.lng() }
       ];
       const gridLine = new google.maps.Polyline({
         path: lineCoords,
         strokeColor: "#000000",
         strokeOpacity: 0.5,
         strokeWeight: 1,
-        map: map!,
+        map: map,
       });
       lines.push(gridLine);
-
-      // Draw vertical grid lines
-      if (i === 0) {
-        for (let j = 0; j < N; j++) {
-          const lng1 = sw.lng() + j * lngStep;
-          const lng2 = sw.lng() + (j + 1) * lngStep;
-
-          const verticalLineCoords = [
-            { lat: ne.lat(), lng: lng1 },
-            { lat: sw.lat(), lng: lng1 }
-          ];
-          const verticalGridLine = new google.maps.Polyline({
-            path: verticalLineCoords,
-            strokeColor: "#000000",
-            strokeOpacity: 0.5,
-            strokeWeight: 1,
-            map: map!,
-          });
-          lines.push(verticalGridLine);
-        }
-      }
-
-      // Draw grid labels and bounding box details
+    }
+  
+    // Draw vertical grid lines
+    for (let j = 0; j <= N; j++) {
+      const lng = sw.lng() + j * lngStep;
+      const lineCoords = [
+        { lat: ne.lat(), lng },
+        { lat: sw.lat(), lng }
+      ];
+      const gridLine = new google.maps.Polyline({
+        path: lineCoords,
+        strokeColor: "#000000",
+        strokeOpacity: 0.5,
+        strokeWeight: 1,
+        map: map,
+      });
+      lines.push(gridLine);
+    }
+  
+    // Draw grid labels and generate division data
+    for (let i = 0; i < M; i++) {
       for (let j = 0; j < N; j++) {
+        const lat1 = ne.lat() - i * latStep;
+        const lat2 = ne.lat() - (i + 1) * latStep;
         const lng1 = sw.lng() + j * lngStep;
         const lng2 = sw.lng() + (j + 1) * lngStep;
-
+  
         const labelPosition = new google.maps.LatLng(
           lat1 - latStep / 2,
           lng1 + lngStep / 2
         );
-
+  
         const labelIndex = i * N + j + 1;
-
+  
         // Draw grid label
         const icon = {
           url: 'https://imgs.search.brave.com/g-dExE8SKvkVmB8zFFK55jmu3dQOigkuC2FLNyhMfaw/rs:fit:860:0:0/g:ce/aHR0cHM6Ly93d3cu/cG5nbWFydC5jb20v/ZmlsZXMvMjMvQmxh/Y2stQ2lyY2xlLVBO/Ry1IRC5wbmc',
-          scaledSize: new google.maps.Size(32, 32),  // Adjust the size as needed
-          origin: new google.maps.Point(0, 0),  // Optional. The origin point of the icon
-          anchor: new google.maps.Point(16, 16)  // Optional. The anchor point of the icon (center)
+          scaledSize: new google.maps.Size(32, 32),
+          origin: new google.maps.Point(0, 0),
+          anchor: new google.maps.Point(16, 16)
         };
-
+  
         const label = new google.maps.Marker({
           position: labelPosition,
           label: {
@@ -216,22 +219,18 @@ const GridDivisionsMap: React.FC = () => {
             fontWeight: 'bold'
           },
           icon: icon,
-          map: map!,
+          map: map,
         });
         labels.push(label);
-
-        // Store bounding box details
+  
+        // Generate division data
         const boxCoords = [
-          `Top-Left: (${lat1.toFixed(6)}, ${lng1.toFixed(6)})`,
-          `Top-Right: (${lat1.toFixed(6)}, ${lng2.toFixed(6)})`,
-          `Bottom-Left: (${lat2.toFixed(6)}, ${lng1.toFixed(6)})`,
-          `Bottom-Right: (${lat2.toFixed(6)}, ${lng2.toFixed(6)})`
+          { lat: lat1, lng: lng1 }, // Top-Left
+          { lat: lat1, lng: lng2 }, // Top-Right
+          { lat: lat2, lng: lng1 }, // Bottom-Left
+          { lat: lat2, lng: lng2 }  // Bottom-Right
         ];
-        boundingBoxDetails.push(``);
-        boundingBoxDetails.push(`-----------------------`);
-        boundingBoxDetails.push(`Division ${labelIndex}:`);
-        boundingBoxDetails.push(...boxCoords);
-
+  
         // Generate and display random POIs
         const poiBounds = {
           north: lat1,
@@ -241,18 +240,20 @@ const GridDivisionsMap: React.FC = () => {
         };
         const randomPOIs = generateRandomPOIs(poiBounds, poiCount);
         displayRandomPOIs(randomPOIs);
-
-        // Store bounding box details
-        boundingBoxDetails.push(`POIs:`);
-        randomPOIs.forEach(poi => {
-          boundingBoxDetails.push(`- ${poi.name} (${poi.lat.toFixed(6)}, ${poi.lng.toFixed(6)})`);
+  
+        // Store division data
+        divisionData.push({
+          index: labelIndex,
+          bounds: boxCoords,
+          pois: randomPOIs
         });
       }
     }
-
+  
     setGridLines(lines);
     setGridLabels(labels);
-    setBoundingBoxDetails(boundingBoxDetails);
+  
+    return divisionData;
   };
 
   const generateRandomPOIs = (bounds: { north: number, south: number, east: number, west: number }, count: number): { name: string, lat: number, lng: number }[] => {
@@ -341,6 +342,7 @@ const GridDivisionsMap: React.FC = () => {
         <label>Number of POIs (0-20):</label>
         <input type="number" name="poiCount" value={poiCount} min="0" max="20" onChange={handlePoiCountChange} />
         <button onClick={handleEnterButtonClick}>Enter</button>
+        <button onClick={handleNearbySearchClick}>Nearby Search</button>
         <button onClick={handlePageRefresh}>Reset</button>
       </div>
       <div className='bounding-box-details'>
