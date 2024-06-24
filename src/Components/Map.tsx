@@ -225,11 +225,15 @@ const GridDivisionsMap: React.FC = () => {
   
         // Generate division data
         const boxCoords = [
-          { lat: lat1, lng: lng1 }, // Top-Left
-          { lat: lat1, lng: lng2 }, // Top-Right
-          { lat: lat2, lng: lng1 }, // Bottom-Left
-          { lat: lat2, lng: lng2 }  // Bottom-Right
+          `Top-Left: (${lat1.toFixed(6)}, ${lng1.toFixed(6)})`,
+          `Top-Right: (${lat1.toFixed(6)}, ${lng2.toFixed(6)})`,
+          `Bottom-Left: (${lat2.toFixed(6)}, ${lng1.toFixed(6)})`,
+          `Bottom-Right: (${lat2.toFixed(6)}, ${lng2.toFixed(6)})`
         ];
+        boundingBoxDetails.push(``);
+        boundingBoxDetails.push(`-----------------------`);
+        boundingBoxDetails.push(`Division ${labelIndex}:`);
+        boundingBoxDetails.push(...boxCoords);
   
         // Generate and display random POIs
         const poiBounds = {
@@ -240,6 +244,8 @@ const GridDivisionsMap: React.FC = () => {
         };
         const randomPOIs = generateRandomPOIs(poiBounds, poiCount);
         displayRandomPOIs(randomPOIs);
+
+        
   
         // Store division data
         divisionData.push({
@@ -247,11 +253,19 @@ const GridDivisionsMap: React.FC = () => {
           bounds: boxCoords,
           pois: randomPOIs
         });
+
+        boundingBoxDetails.push(`POIs:`);
+        randomPOIs.forEach(poi => {
+          boundingBoxDetails.push(`${poi.name} - (${poi.lat.toFixed(6)}, ${poi.lng.toFixed(6)})`);
+        });
+
+        
       }
     }
   
     setGridLines(lines);
     setGridLabels(labels);
+    setBoundingBoxDetails(boundingBoxDetails);
   
     return divisionData;
   };
