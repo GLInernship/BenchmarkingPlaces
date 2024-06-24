@@ -125,11 +125,28 @@ const GridDivisionsMap: React.FC = () => {
     if (selectedPlace) {
       const divisionData = drawGridDivisions();
       setDivisionData(divisionData);
-      setPoiData(divisionData.flatMap(division => division.pois));
+      setPoiData(divisionData.flatMap(division => division.pois.map((poi: any) => ({
+        ...poi,
+        divisionIndex: division.index
+      }))));
     }
   };
   const handleNearbySearchClick = () => {
-    navigate('/nearby-search');
+    if (selectedPlace) {
+      const allDivisions = drawGridDivisions();
+      const centers = allDivisions.map(division => ({
+        index: division.index,
+        center: division.center
+      }));
+      navigate('/nearby-search', { 
+        state: { 
+          divisionIndex: gridDivisions.M * gridDivisions.N,
+          centers: centers
+        } 
+      });
+    } else {
+      alert("Please select a place first.");
+    }
   };
 
 
@@ -152,6 +169,7 @@ const GridDivisionsMap: React.FC = () => {
     const lines: google.maps.Polyline[] = [];
     const labels: google.maps.Marker[] = [];
     const divisionData: any[] = [];
+    const newBoundingBoxDetails: string[] = [];
   
     // Draw horizontal grid lines
     for (let i = 0; i <= M; i++) {
@@ -195,6 +213,10 @@ const GridDivisionsMap: React.FC = () => {
         const lng1 = sw.lng() + j * lngStep;
         const lng2 = sw.lng() + (j + 1) * lngStep;
   
+        // Calculate center point
+        const centerLat = (lat1 + lat2) / 2;
+        const centerLng = (lng1 + lng2) / 2;
+  
         const labelPosition = new google.maps.LatLng(
           lat1 - latStep / 2,
           lng1 + lngStep / 2
@@ -228,12 +250,13 @@ const GridDivisionsMap: React.FC = () => {
           `Top-Left: (${lat1.toFixed(6)}, ${lng1.toFixed(6)})`,
           `Top-Right: (${lat1.toFixed(6)}, ${lng2.toFixed(6)})`,
           `Bottom-Left: (${lat2.toFixed(6)}, ${lng1.toFixed(6)})`,
-          `Bottom-Right: (${lat2.toFixed(6)}, ${lng2.toFixed(6)})`
+          `Bottom-Right: (${lat2.toFixed(6)}, ${lng2.toFixed(6)})`,
+          `Center: (${centerLat.toFixed(6)}, ${centerLng.toFixed(6)})`
         ];
-        boundingBoxDetails.push(``);
-        boundingBoxDetails.push(`-----------------------`);
-        boundingBoxDetails.push(`Division ${labelIndex}:`);
-        boundingBoxDetails.push(...boxCoords);
+        newBoundingBoxDetails.push(``);
+        newBoundingBoxDetails.push(`-----------------------`);
+        newBoundingBoxDetails.push(`Division ${labelIndex}:`);
+        newBoundingBoxDetails.push(...boxCoords);
   
         // Generate and display random POIs
         const poiBounds = {
@@ -244,28 +267,25 @@ const GridDivisionsMap: React.FC = () => {
         };
         const randomPOIs = generateRandomPOIs(poiBounds, poiCount);
         displayRandomPOIs(randomPOIs);
-
-        
   
         // Store division data
         divisionData.push({
           index: labelIndex,
           bounds: boxCoords,
+          center: { lat: centerLat, lng: centerLng },
           pois: randomPOIs
         });
-
-        boundingBoxDetails.push(`POIs:`);
+  
+        newBoundingBoxDetails.push(`POIs:`);
         randomPOIs.forEach(poi => {
-          boundingBoxDetails.push(`${poi.name} - (${poi.lat.toFixed(6)}, ${poi.lng.toFixed(6)})`);
+          newBoundingBoxDetails.push(`${poi.name} - (${poi.lat.toFixed(6)}, ${poi.lng.toFixed(6)})`);
         });
-
-        
       }
     }
   
     setGridLines(lines);
     setGridLabels(labels);
-    setBoundingBoxDetails(boundingBoxDetails);
+    setBoundingBoxDetails(newBoundingBoxDetails);
   
     return divisionData;
   };
