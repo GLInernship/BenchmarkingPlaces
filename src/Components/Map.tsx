@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './map.css';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual API key
+
 interface GoogleMap extends google.maps.Map {}
 
 const GridDivisionsMap: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [map, setMap] = useState<GoogleMap | undefined>(undefined);
+  const [map, setMap] = useState<GoogleMap | undefined>(undefined); // Initialize as undefined
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
   const [placePolygon, setPlacePolygon] = useState<google.maps.Polygon | null>(null);
@@ -119,7 +120,7 @@ const GridDivisionsMap: React.FC = () => {
     }
   };
 
-  const drawGridDivisions = () => {
+  const drawGridDivisions = async () => {
     if (!map || !selectedPlace) return;
 
     clearGridDivisions();
@@ -217,7 +218,6 @@ const GridDivisionsMap: React.FC = () => {
           map: map!,
         });
         labels.push(label);
-             
 
         // Calculate bounding box details
         const boxCoords = [
@@ -238,7 +238,7 @@ const GridDivisionsMap: React.FC = () => {
           east: lng2,
           west: lng1
         };
-        const randomPOIs = generateRandomPOIs(poiBounds);
+        const randomPOIs = await generateRandomPOIs(poiBounds);
         displayRandomPOIs(randomPOIs);
 
         // Store bounding box details
@@ -254,38 +254,41 @@ const GridDivisionsMap: React.FC = () => {
     setBoundingBoxDetails(boundingBoxDetails);
   };
 
-  const generateRandomPOIs = (bounds: { north: number, south: number, east: number, west: number }): { name: string, lat: number, lng: number }[] => {
+  const generateRandomPOIs = async (bounds: { north: number, south: number, east: number, west: number }): Promise<{ name: string, lat: number, lng: number }[]> => {
     const numPOIs = 10;
     const randomPOIs: { name: string, lat: number, lng: number }[] = [];
 
     for (let i = 0; i < numPOIs; i++) {
       const lat = bounds.south + Math.random() * (bounds.north - bounds.south);
       const lng = bounds.west + Math.random() * (bounds.east - bounds.west);
-      randomPOIs.push({ name: `POI ${i + 1}`, lat, lng });
+      const poiName = await fetchPOIName(lat, lng);
+
+      randomPOIs.push({ name: poiName, lat, lng });
     }
 
     return randomPOIs;
   };
 
+  const fetchPOIName = async (lat: number, lng: number): Promise<string> => {
+    const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
+    const data = await response.json();
+
+    if (data.results && data.results.length > 0) {
+      return data.results[0].formatted_address; // Adjust according to API response structure
+    } else {
+      return 'Unknown'; // Fallback in case of no results
+    }
+  };
+
   const displayRandomPOIs = (pois: { name: string, lat: number, lng: number }[]) => {
     pois.forEach(poi => {
-
-      const icon = {
-        url: 'https://www.pngall.com/wp-content/uploads/13/Red-Circle.png',
-        scaledSize: new google.maps.Size(12, 12),  // Adjust the size as needed
-        origin: new google.maps.Point(0, 0),  // Optional. The origin point of the icon
-        anchor: new google.maps.Point(16, 16)  // Optional. The anchor point of the icon (center)
-      };
-
       new google.maps.Marker({
         position: { lat: poi.lat, lng: poi.lng },
         map: map!,
-        title: poi.name,
-        icon: icon
+        title: poi.name
       });
     });
   };
-  
 
   const clearGridDivisions = () => {
     gridLines.forEach(line => {
@@ -333,7 +336,7 @@ const GridDivisionsMap: React.FC = () => {
         <label>Number of Columns (N):</label>
         <input type="number" name="N" value={gridDivisions.N} onChange={handleGridDivisionsChange} />
         <button onClick={handleEnterButtonClick}>Enter</button>
-        {/* <button onClick={handleUndoButtonClick}>Undo</button> */}
+        <button onClick={handleUndoButtonClick}>Undo</button>
       </div>
       <div className='bounding-box-details'>
         {boundingBoxDetails.map((detail, index) => (
@@ -345,3 +348,4 @@ const GridDivisionsMap: React.FC = () => {
 };
 
 export default GridDivisionsMap;
+
