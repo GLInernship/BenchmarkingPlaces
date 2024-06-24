@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './map.css';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual API key
 interface GoogleMap extends google.maps.Map {}
 
 const GridDivisionsMap: React.FC = () => {
@@ -200,9 +200,9 @@ const GridDivisionsMap: React.FC = () => {
         // Draw grid label
         const icon = {
           url: 'https://imgs.search.brave.com/g-dExE8SKvkVmB8zFFK55jmu3dQOigkuC2FLNyhMfaw/rs:fit:860:0:0/g:ce/aHR0cHM6Ly93d3cu/cG5nbWFydC5jb20v/ZmlsZXMvMjMvQmxh/Y2stQ2lyY2xlLVBO/Ry1IRC5wbmc',
-          scaledSize: new google.maps.Size(32, 32),  // Adjust the size as needed
-          origin: new google.maps.Point(0, 0),  // Optional. The origin point of the icon
-          anchor: new google.maps.Point(16, 16)  // Optional. The anchor point of the icon (center)
+          scaledSize: new google.maps.Size(32, 32), 
+          origin: new google.maps.Point(0, 0),  
+          anchor: new google.maps.Point(16, 16)  
         };
         
         const label = new google.maps.Marker({
@@ -217,7 +217,6 @@ const GridDivisionsMap: React.FC = () => {
           map: map!,
         });
         labels.push(label);
-             
 
         // Calculate bounding box details
         const boxCoords = [
@@ -272,9 +271,9 @@ const GridDivisionsMap: React.FC = () => {
 
       const icon = {
         url: 'https://www.pngall.com/wp-content/uploads/13/Red-Circle.png',
-        scaledSize: new google.maps.Size(12, 12),  // Adjust the size as needed
-        origin: new google.maps.Point(0, 0),  // Optional. The origin point of the icon
-        anchor: new google.maps.Point(16, 16)  // Optional. The anchor point of the icon (center)
+        scaledSize: new google.maps.Size(12, 12), 
+        origin: new google.maps.Point(0, 0), 
+        anchor: new google.maps.Point(16, 16) 
       };
 
       new google.maps.Marker({
@@ -301,10 +300,8 @@ const GridDivisionsMap: React.FC = () => {
     setGridLabels([]);
   };
 
-  const handleUndoButtonClick = () => {
-    clearGridDivisions();
-    clearGridLabels();
-    setBoundingBoxDetails([]);
+  const handlePageRefresh = () => {
+    window.location.reload();
   };
 
   return (
@@ -333,7 +330,7 @@ const GridDivisionsMap: React.FC = () => {
         <label>Number of Columns (N):</label>
         <input type="number" name="N" value={gridDivisions.N} onChange={handleGridDivisionsChange} />
         <button onClick={handleEnterButtonClick}>Enter</button>
-        {/* <button onClick={handleUndoButtonClick}>Undo</button> */}
+        <button onClick={handlePageRefresh}>Reset</button>
       </div>
       <div className='bounding-box-details'>
         {boundingBoxDetails.map((detail, index) => (
