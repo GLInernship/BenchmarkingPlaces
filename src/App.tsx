@@ -11,7 +11,7 @@ const App: React.FC = () => {
         <div className="App" style={{margin: '0 5%'}}>
           <h1>Benchmarking Places</h1>
           <Routes>
-            <Route path="/" element={<Map />} />
+            <Route path="/BenchmarkingPlaces" element={<Map />} />
             <Route path="/nearby-search" element={<NearbySearchPage />} />
           </Routes>
         </div>
