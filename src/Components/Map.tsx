@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './map.css';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual API key
+
 interface GoogleMap extends google.maps.Map {}
 
 const GridDivisionsMap: React.FC = () => {
@@ -16,6 +17,7 @@ const GridDivisionsMap: React.FC = () => {
   const [gridLines, setGridLines] = useState<google.maps.Polyline[]>([]);
   const [gridLabels, setGridLabels] = useState<google.maps.Marker[]>([]);
   const [boundingBoxDetails, setBoundingBoxDetails] = useState<string[]>([]);
+  const [poiCount, setPoiCount] = useState<number>(10); // Default number of POIs
 
   useEffect(() => {
     if (!mapRef.current || map !== undefined) return;
@@ -200,11 +202,11 @@ const GridDivisionsMap: React.FC = () => {
         // Draw grid label
         const icon = {
           url: 'https://imgs.search.brave.com/g-dExE8SKvkVmB8zFFK55jmu3dQOigkuC2FLNyhMfaw/rs:fit:860:0:0/g:ce/aHR0cHM6Ly93d3cu/cG5nbWFydC5jb20v/ZmlsZXMvMjMvQmxh/Y2stQ2lyY2xlLVBO/Ry1IRC5wbmc',
-          scaledSize: new google.maps.Size(32, 32), 
-          origin: new google.maps.Point(0, 0),  
-          anchor: new google.maps.Point(16, 16)  
+          scaledSize: new google.maps.Size(32, 32),  // Adjust the size as needed
+          origin: new google.maps.Point(0, 0),  // Optional. The origin point of the icon
+          anchor: new google.maps.Point(16, 16)  // Optional. The anchor point of the icon (center)
         };
-        
+
         const label = new google.maps.Marker({
           position: labelPosition,
           label: {
@@ -218,7 +220,7 @@ const GridDivisionsMap: React.FC = () => {
         });
         labels.push(label);
 
-        // Calculate bounding box details
+        // Store bounding box details
         const boxCoords = [
           `Top-Left: (${lat1.toFixed(6)}, ${lng1.toFixed(6)})`,
           `Top-Right: (${lat1.toFixed(6)}, ${lng2.toFixed(6)})`,
@@ -237,7 +239,7 @@ const GridDivisionsMap: React.FC = () => {
           east: lng2,
           west: lng1
         };
-        const randomPOIs = generateRandomPOIs(poiBounds);
+        const randomPOIs = generateRandomPOIs(poiBounds, poiCount);
         displayRandomPOIs(randomPOIs);
 
         // Store bounding box details
@@ -253,8 +255,8 @@ const GridDivisionsMap: React.FC = () => {
     setBoundingBoxDetails(boundingBoxDetails);
   };
 
-  const generateRandomPOIs = (bounds: { north: number, south: number, east: number, west: number }): { name: string, lat: number, lng: number }[] => {
-    const numPOIs = 10;
+  const generateRandomPOIs = (bounds: { north: number, south: number, east: number, west: number }, count: number): { name: string, lat: number, lng: number }[] => {
+    const numPOIs = Math.min(Math.max(0, count), 20); // Ensure count is within 0-20 range
     const randomPOIs: { name: string, lat: number, lng: number }[] = [];
 
     for (let i = 0; i < numPOIs; i++) {
@@ -271,9 +273,9 @@ const GridDivisionsMap: React.FC = () => {
 
       const icon = {
         url: 'https://www.pngall.com/wp-content/uploads/13/Red-Circle.png',
-        scaledSize: new google.maps.Size(12, 12), 
-        origin: new google.maps.Point(0, 0), 
-        anchor: new google.maps.Point(16, 16) 
+        scaledSize: new google.maps.Size(12, 12),  // Adjust the size as needed
+        origin: new google.maps.Point(0, 0),  // Optional. The origin point of the icon
+        anchor: new google.maps.Point(16, 16)  // Optional. The anchor point of the icon (center)
       };
 
       new google.maps.Marker({
@@ -304,6 +306,13 @@ const GridDivisionsMap: React.FC = () => {
     window.location.reload();
   };
 
+  const handlePoiCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const count = parseInt(event.target.value, 10);
+    if (!isNaN(count)) {
+      setPoiCount(Math.min(Math.max(0, count), 20)); // Clamp count within 0-20 range
+    }
+  };
+
   return (
     <div className='grid-map'>
       <div className='search-container'>
@@ -329,6 +338,8 @@ const GridDivisionsMap: React.FC = () => {
         <input type="number" name="M" value={gridDivisions.M} onChange={handleGridDivisionsChange} />
         <label>Number of Columns (N):</label>
         <input type="number" name="N" value={gridDivisions.N} onChange={handleGridDivisionsChange} />
+        <label>Number of POIs (0-20):</label>
+        <input type="number" name="poiCount" value={poiCount} min="0" max="20" onChange={handlePoiCountChange} />
         <button onClick={handleEnterButtonClick}>Enter</button>
         <button onClick={handlePageRefresh}>Reset</button>
       </div>
