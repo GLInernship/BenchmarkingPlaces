@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/BenchmarkingPlaces/static/css/main.f3cf8d83.css",
+    "main.js": "/BenchmarkingPlaces/static/js/main.9ab2e1f1.js",
+    "static/js/453.e53ecaa3.chunk.js": "/BenchmarkingPlaces/static/js/453.e53ecaa3.chunk.js",
+    "index.html": "/BenchmarkingPlaces/index.html",
+    "main.f3cf8d83.css.map": "/BenchmarkingPlaces/static/css/main.f3cf8d83.css.map",
+    "main.9ab2e1f1.js.map": "/BenchmarkingPlaces/static/js/main.9ab2e1f1.js.map",
+    "453.e53ecaa3.chunk.js.map": "/BenchmarkingPlaces/static/js/453.e53ecaa3.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f3cf8d83.css",
+    "static/js/main.9ab2e1f1.js"
+  ]
+}
