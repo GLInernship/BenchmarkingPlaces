@@ -1,12 +1,22 @@
 import React from 'react';
-import Map from './Components/Map'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { GridProvider } from './Components/GridContext';
+import Map from './Components/Map';
+import NearbySearchPage from './Components/NearbySearchPage';
 
 const App: React.FC = () => {
   return (
-    <div className="App" style={{margin: '0 5%'}}>
-      <h1>Benchmarking Places</h1>
-      <Map />
-    </div>
+    <GridProvider>
+      <Router>
+        <div className="App" style={{margin: '0 5%'}}>
+          <h1>Benchmarking Places</h1>
+          <Routes>
+            <Route path="/" element={<Map />} />
+            <Route path="/nearby-search" element={<NearbySearchPage />} />
+          </Routes>
+        </div>
+      </Router>
+    </GridProvider>
   );
 };
 
