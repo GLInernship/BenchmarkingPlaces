@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useGridContext } from './GridContext';
+import { useLocation } from 'react-router-dom';
 
 interface POI {
   name: string;
   lat: number;
   lng: number;
-  divisionId: number;
+  divisionIndex: number;
 }
 
 interface NearbyPlace {
@@ -16,11 +17,18 @@ interface NearbyPlace {
 }
 
 interface GroupedPOI {
-  division: string;
+  divisionIndex: number;
+  center: { lat: number; lng: number };
+  centerAddress: string;
   pois: {
     poi: POI;
     nearbyPlace: NearbyPlace | null;
   }[];
+}
+
+interface LocationState {
+  divisionIndex: number;
+  centers: { index: number; center: { lat: number; lng: number } }[];
 }
 
 const NearbySearchPage: React.FC = () => {
@@ -30,11 +38,14 @@ const NearbySearchPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchRadius, setSearchRadius] = useState<number>(1000); // Default radius of 1000 meters
 
+  const location = useLocation();
+  const { divisionIndex: totalDivisions, centers } = location.state as LocationState;
+
   useEffect(() => {
-    if (poiData.length > 0) {
+    if (centers.length > 0) {
       searchNearbyPlaces();
     }
-  }, [poiData]);
+  }, [centers]);
 
   const searchNearbyPlaces = async () => {
     setLoading(true);
@@ -44,40 +55,28 @@ const NearbySearchPage: React.FC = () => {
       const mapElement = document.createElement('div');
       const map = new google.maps.Map(mapElement);
       const service = new google.maps.places.PlacesService(map);
-      for (const division of divisionData) {
-        const poisInDivision = poiData.filter(poi => poi.divisionId === division.id);
+      const geocoder = new google.maps.Geocoder();
+
+      for (const centerInfo of centers) {
+        const poisInDivision = poiData.filter(poi => poi.divisionIndex === centerInfo.index);
+
+        // Get the address of the center coordinate
+        const centerAddress = await getCenterAddress(geocoder, centerInfo.center);
+
         const poisWithNearbyPlaces = await Promise.all(poisInDivision.map(async (poi) => {
           try {
-            const request: google.maps.places.PlaceSearchRequest = {
-              location: new google.maps.LatLng(poi.lat, poi.lng),
-              radius: searchRadius,
-              type: 'point_of_interest'
-            };
-            const result = await new Promise<NearbyPlace | null>((resolve, reject) => {
-              service.nearbySearch(request, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-                  const nearbyPlace = results[0];
-                  resolve({
-                    name: nearbyPlace.name || 'Unknown',
-                    formatted_address: nearbyPlace.vicinity || 'Unknown address',
-                    lat: nearbyPlace.geometry?.location?.lat() || 0,
-                    lng: nearbyPlace.geometry?.location?.lng() || 0
-                  });
-                } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-                  resolve(null);
-                } else {
-                  reject(new Error(`Place search failed for POI: ${poi.name}. Status: ${status}`));
-                }
-              });
-            });
-            return { poi, nearbyPlace: result };
+            const nearbyPlace = await searchNearbyPlace(service, poi);
+            return { poi, nearbyPlace };
           } catch (poiError) {
             console.error('Error searching for POI:', poi, poiError);
             return { poi, nearbyPlace: null };
           }
         }));
+
         groupedResults.push({
-          division: division.name,
+          divisionIndex: centerInfo.index,
+          center: centerInfo.center,
+          centerAddress,
           pois: poisWithNearbyPlaces
         });
       }
@@ -94,6 +93,45 @@ const NearbySearchPage: React.FC = () => {
     }
   };
 
+  const getCenterAddress = (geocoder: google.maps.Geocoder, center: { lat: number; lng: number }): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const latlng = new google.maps.LatLng(center.lat, center.lng);
+      geocoder.geocode({ location: latlng }, (results, status) => {
+        if (status === google.maps.GeocoderStatus.OK && results && results.length > 0) {
+          resolve(results[0].formatted_address);
+        } else {
+          reject(new Error(`Geocode failed for center. Status: ${status}`));
+        }
+      });
+    });
+  };
+
+  const searchNearbyPlace = (service: google.maps.places.PlacesService, poi: POI): Promise<NearbyPlace | null> => {
+    return new Promise((resolve, reject) => {
+      const request: google.maps.places.PlaceSearchRequest = {
+        location: new google.maps.LatLng(poi.lat, poi.lng),
+        radius: searchRadius,
+        type: 'point_of_interest'
+      };
+
+      service.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
+          const nearbyPlace = results[0];
+          resolve({
+            name: nearbyPlace.name || 'Unknown',
+            formatted_address: nearbyPlace.vicinity || 'Unknown address',
+            lat: nearbyPlace.geometry?.location?.lat() || 0,
+            lng: nearbyPlace.geometry?.location?.lng() || 0
+          });
+        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+          resolve(null);
+        } else {
+          reject(new Error(`Place search failed for POI: ${poi.name}. Status: ${status}`));
+        }
+      });
+    });
+  };
+
   const handleRadiusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(event.target.value);
     if (!isNaN(value) && value > 0) {
@@ -108,6 +146,7 @@ const NearbySearchPage: React.FC = () => {
   return (
     <div>
       <h1>Nearby Search</h1>
+      <p>Total Divisions: {totalDivisions}</p>
       <div>
         <label htmlFor="radius">Search Radius (meters): </label>
         <input 
@@ -126,7 +165,8 @@ const NearbySearchPage: React.FC = () => {
           <h2>Grouped Nearby Places:</h2>
           {groupedPOIs.map((group, groupIndex) => (
             <div key={groupIndex}>
-              <h3>Division: {group.division}</h3>
+              <h3>Sub-Region: {group.divisionIndex}----{group.centerAddress}</h3>
+              <p>Center: (Lat: {group.center.lat.toFixed(6)}, Lng: {group.center.lng.toFixed(6)})</p>
               {group.pois.map((poiData, poiIndex) => (
                 <div key={poiIndex}>
                   <h4>POI: {poiData.poi.name} (Lat: {poiData.poi.lat.toFixed(6)}, Lng: {poiData.poi.lng.toFixed(6)})</h4>
