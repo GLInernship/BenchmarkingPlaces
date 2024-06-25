@@ -114,14 +114,14 @@ const NearbySearchPage: React.FC = () => {
     try {
       const response = await axios.get(`https://browse.search.hereapi.com/v1/browse`, {
         params: {
-          apiKey: 'YOUR_HERE_API_KEY',
+          apiKey: 'Ec28CwX24sTC4cGNkLX1PxKCp0TDQZvCwX7xroJJHnw',
           at: `${poi.lat},${poi.lng}`,
           limit: resultLimit,
           categories: '100',
           in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
         }
       });
-
+  
       if (response.data.items && response.data.items.length > 0) {
         return response.data.items.map((item: any) => ({
           name: item.title,
@@ -133,9 +133,16 @@ const NearbySearchPage: React.FC = () => {
       return [];
     } catch (error) {
       console.error('Error searching HERE nearby place:', error);
+  
+      // Log detailed AxiosError information
+      if (axios.isAxiosError(error)) {
+        console.error('AxiosError Details:', error.toJSON());
+      }
+  
       return [];
     }
   };
+  
 
   const getCenterAddress = (geocoder: google.maps.Geocoder, center: { lat: number; lng: number }): Promise<string> => {
     return new Promise((resolve, reject) => {
