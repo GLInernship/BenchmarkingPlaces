@@ -372,11 +372,11 @@ const GridDivisionsMap: React.FC = () => {
       </div>
       <div className='control-panel'>
         <label>Number of Rows (M):</label>
-        <input type="number" name="M" value={gridDivisions.M} onChange={handleGridDivisionsChange} />
+        <input type="number" name="M" value={gridDivisions.M || 1} onChange={handleGridDivisionsChange} />
         <label>Number of Columns (N):</label>
-        <input type="number" name="N" value={gridDivisions.N} onChange={handleGridDivisionsChange} />
-        <label>Number of POIs (0-20):</label>
-        <input type="number" name="poiCount" value={poiCount} min="0" max="20" onChange={handlePoiCountChange} />
+        <input type="number" name="N" value={gridDivisions.N || 1} onChange={handleGridDivisionsChange} />
+        <label>Number of (Lat,Lng) (0-20):</label>
+        <input type="number" name="poiCount" value={poiCount || 1} min="0" max="20" onChange={handlePoiCountChange} />
         <button onClick={handleEnterButtonClick}>Enter</button>
         {enterClicked && <button onClick={handleNearbySearchClick}>Nearby Search</button>}
         <button onClick={handlePageRefresh}>Reset</button>
