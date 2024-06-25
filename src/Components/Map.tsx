@@ -26,6 +26,23 @@ const GridDivisionsMap: React.FC = () => {
   const [poiCount, setPoiCount] = useState<string>(''); // Changed from number to string
   const [enterClicked, setEnterClicked] = useState<boolean>(false);
   const [isPlaceSelected, setIsPlaceSelected] = useState<boolean>(false);
+  const [searchRadius, setSearchRadius] = useState<number>(1000);
+  const [resultLimit, setResultLimit] = useState<number>(20);
+
+  const handleSearchRadiusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value);
+    if (!isNaN(value) && value > 0) {
+      setSearchRadius(value);
+    }
+  };
+
+  const handleResultLimitChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value);
+    if (!isNaN(value) && value > 0 && value <= 50) {
+      setResultLimit(value);
+    }
+  };
+
 
   useEffect(() => {
     if (!mapRef.current || map !== undefined) return;
@@ -147,7 +164,9 @@ const GridDivisionsMap: React.FC = () => {
       navigate('/nearby-search', {
         state: {
           divisionIndex: gridDivisions.M * gridDivisions.N,
-          centers: centers
+          centers: centers,
+          searchRadius: searchRadius,
+          resultLimit: resultLimit
         }
       });
     } else {
@@ -429,7 +448,29 @@ const GridDivisionsMap: React.FC = () => {
           placeholder="Enter POI count"
           required
         />
-        <button type="submit" disabled={!isPlaceSelected}>Enter</button>
+        <label>Search Radius (meters):</label>
+        <input
+          type="number"
+          name="searchRadius"
+          value={searchRadius}
+          onChange={handleSearchRadiusChange}
+          onKeyPress={handleKeyPress}
+          required
+          min="1"
+        />
+        
+        <label>Result Limit (1-50):</label>
+        <input
+          type="number"
+          name="resultLimit"
+          value={resultLimit}
+          onChange={handleResultLimitChange}
+          onKeyPress={handleKeyPress}
+          required
+          min="1"
+          max="50"
+        />
+       <button type="submit" disabled={!isPlaceSelected}>Enter</button>
         {enterClicked && <button type="button" onClick={handleNearbySearchClick}>Nearby Search</button>}
         <button type="button" onClick={handlePageRefresh}>Reset</button>
       </form>
