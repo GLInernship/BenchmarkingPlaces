@@ -32,6 +32,8 @@ interface LocationState {
   centers: { index: number; center: { lat: number; lng: number } }[];
 }
 
+const HERE_API_KEY = 'LBLcbwo2L29-H_94caQD3PdrS2CBHY965PhD2u430VM';
+
 const NearbySearchPage: React.FC = () => {
   const { divisionData, poiData } = useGridContext();
   const [groupedPOIs, setGroupedPOIs] = useState<GroupedPOI[]>([]);
@@ -39,6 +41,8 @@ const NearbySearchPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchRadius, setSearchRadius] = useState<number>(1000); // Default radius of 1000 meters
   const [dataSaved, setDataSaved] = useState(false);
+  const [groupedPOIsHERE, setGroupedPOIsHERE] = useState<GroupedPOI[]>([]);
+
 
   const location = useLocation();
   const { divisionIndex: totalDivisions, centers } = location.state as LocationState;
@@ -53,6 +57,7 @@ const NearbySearchPage: React.FC = () => {
     setLoading(true);
     setError(null);
     const groupedResults: GroupedPOI[] = [];
+    const groupedResultsHERE: GroupedPOI[] = [];
     try {
       const mapElement = document.createElement('div');
       const map = new google.maps.Map(mapElement);
@@ -61,28 +66,35 @@ const NearbySearchPage: React.FC = () => {
 
       for (const centerInfo of centers) {
         const poisInDivision = poiData.filter(poi => poi.divisionIndex === centerInfo.index);
-
-        // Get the address of the center coordinate
         const centerAddress = await getCenterAddress(geocoder, centerInfo.center);
-
+  
         const poisWithNearbyPlaces = await Promise.all(poisInDivision.map(async (poi) => {
           try {
             const nearbyPlace = await searchNearbyPlace(service, poi);
-            return { poi, nearbyPlace };
+            const nearbyPlaceHERE = await searchNearbyPlaceHERE(poi);
+            return { poi, nearbyPlace, nearbyPlaceHERE };
           } catch (poiError) {
             console.error('Error searching for POI:', poi, poiError);
-            return { poi, nearbyPlace: null };
+            return { poi, nearbyPlace: null, nearbyPlaceHERE: null };
           }
         }));
-
+  
         groupedResults.push({
           divisionIndex: centerInfo.index,
           center: centerInfo.center,
           centerAddress,
-          pois: poisWithNearbyPlaces
+          pois: poisWithNearbyPlaces.map(({ poi, nearbyPlace }) => ({ poi, nearbyPlace }))
+        });
+  
+        groupedResultsHERE.push({
+          divisionIndex: centerInfo.index,
+          center: centerInfo.center,
+          centerAddress,
+          pois: poisWithNearbyPlaces.map(({ poi, nearbyPlaceHERE }) => ({ poi, nearbyPlace: nearbyPlaceHERE }))
         });
       }
       setGroupedPOIs(groupedResults);
+      setGroupedPOIsHERE(groupedResultsHERE);
     } catch (error: unknown) {
       console.error('Error in searchNearbyPlaces:', error);
       if (error instanceof Error) {
@@ -92,6 +104,34 @@ const NearbySearchPage: React.FC = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const searchNearbyPlaceHERE = async (poi: POI): Promise<NearbyPlace | null> => {
+    try {
+      const response = await axios.get(`https://discover.search.hereapi.com/v1/discover`, {
+        params: {
+          apiKey: HERE_API_KEY,
+          at: `${poi.lat},${poi.lng}`,
+          limit: 1,
+          radius: searchRadius,
+          q: 'point of interest'
+        }
+      });
+  
+      if (response.data.items && response.data.items.length > 0) {
+        const item = response.data.items[0];
+        return {
+          name: item.title,
+          formatted_address: item.address.label,
+          lat: item.position.lat,
+          lng: item.position.lng
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error searching HERE Maps:', error);
+      return null;
     }
   };
 
@@ -147,7 +187,10 @@ const NearbySearchPage: React.FC = () => {
 
   const handleSaveData = async () => {
     try {
-      const response = await axios.post('http://localhost:9000/api/save-nearby-places', { groupedPOIs });
+      const response = await axios.post('http://localhost:9000/api/save-nearby-places',{
+         groupedPOIs, 
+         groupedPOIsHERE: []
+        });
       if (response.status === 200) {
         setDataSaved(true);
         alert('Data saved successfully!');
@@ -188,11 +231,22 @@ const NearbySearchPage: React.FC = () => {
               {group.pois.map((poiData, poiIndex) => (
                 <div key={poiIndex}>
                   <h4>POI: {poiData.poi.name} (Lat: {poiData.poi.lat.toFixed(6)}, Lng: {poiData.poi.lng.toFixed(6)})</h4>
+                  <h5>Google Results:</h5>
                   {poiData.nearbyPlace ? (
                     <p>
                       Nearby Place: {poiData.nearbyPlace.name} - {poiData.nearbyPlace.formatted_address}
                       <br />
                       Lat: {poiData.nearbyPlace.lat.toFixed(6)}, Lng: {poiData.nearbyPlace.lng.toFixed(6)}
+                    </p>
+                  ) : (
+                    <p>No nearby place found for this POI.</p>
+                  )}
+                  <h5>HERE Maps Results:</h5>
+                  {groupedPOIsHERE[groupIndex].pois[poiIndex].nearbyPlace ? (
+                    <p>
+                      Nearby Place: {groupedPOIsHERE[groupIndex].pois[poiIndex].nearbyPlace!.name} - {groupedPOIsHERE[groupIndex].pois[poiIndex].nearbyPlace!.formatted_address}
+                      <br />
+                      Lat: {groupedPOIsHERE[groupIndex].pois[poiIndex].nearbyPlace!.lat.toFixed(6)}, Lng: {groupedPOIsHERE[groupIndex].pois[poiIndex].nearbyPlace!.lng.toFixed(6)}
                     </p>
                   ) : (
                     <p>No nearby place found for this POI.</p>
