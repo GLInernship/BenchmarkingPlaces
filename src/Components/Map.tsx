@@ -409,14 +409,14 @@ const GridDivisionsMap: React.FC = () => {
         required 
         min="1"
       />
-      <label>Number of (Lat,Lng) (0-20):</label>
+      <label>Number of (Lat,Lng) (1-20):</label>
       <input
         type="number"
         name="poiCount"
         value={poiCount}
         onChange={handlePoiCountChange}
         onKeyPress={handleKeyPress}
-        min="0"
+        min="1"
         max="20"
         placeholder="Enter POI count"
         required
