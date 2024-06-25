@@ -23,8 +23,8 @@ interface GroupedPOI {
   centerAddress: string;
   pois: {
     poi: POI;
-    nearbyPlace: NearbyPlace | null;
-    hereNearbyPlace: HereNearbyPlace | null;
+    nearbyPlaces: NearbyPlace[];
+    hereNearbyPlaces: HereNearbyPlace[];
   }[];
 }
 
@@ -39,6 +39,7 @@ interface HereNearbyPlace {
   lat: number;
   lng: number;
 }
+
 
 const NearbySearchPage: React.FC = () => {
   const { divisionData, poiData } = useGridContext();
@@ -75,14 +76,14 @@ const NearbySearchPage: React.FC = () => {
 
         const poisWithNearbyPlaces = await Promise.all(poisInDivision.map(async (poi) => {
           try {
-            const [nearbyPlace, hereNearbyPlace] = await Promise.all([
+            const [nearbyPlaces, hereNearbyPlaces] = await Promise.all([
               searchNearbyPlace(service, poi),
               searchHereNearbyPlace(poi)
             ]);
-            return { poi, nearbyPlace, hereNearbyPlace };
+            return { poi, nearbyPlaces, hereNearbyPlaces };
           } catch (poiError) {
             console.error('Error searching for POI:', poi, poiError);
-            return { poi, nearbyPlace: null, hereNearbyPlace: null };
+            return { poi, nearbyPlaces: [], hereNearbyPlaces: [] };
           }
         }));
 
@@ -106,31 +107,30 @@ const NearbySearchPage: React.FC = () => {
     }
   };
 
-  const searchHereNearbyPlace = async (poi: POI): Promise<HereNearbyPlace | null> => {
+  const searchHereNearbyPlace = async (poi: POI): Promise<HereNearbyPlace[]> => {
     try {
       const response = await axios.get(`https://browse.search.hereapi.com/v1/browse`, {
         params: {
           apiKey: 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q',
           at: `${poi.lat},${poi.lng}`,
-          limit: 1,
+          limit: 25,  // Increase this to get more results
           categories: '100',
           radius: searchRadius
         }
       });
-  
+
       if (response.data.items && response.data.items.length > 0) {
-        const item = response.data.items[0];
-        return {
+        return response.data.items.map((item: any) => ({
           name: item.title,
           address: item.address.label,
           lat: item.position.lat,
           lng: item.position.lng
-        };
+        }));
       }
-      return null;
+      return [];
     } catch (error) {
       console.error('Error searching HERE nearby place:', error);
-      return null;
+      return [];
     }
   };
 
@@ -147,7 +147,7 @@ const NearbySearchPage: React.FC = () => {
     });
   };
 
-  const searchNearbyPlace = (service: google.maps.places.PlacesService, poi: POI): Promise<NearbyPlace | null> => {
+  const searchNearbyPlace = (service: google.maps.places.PlacesService, poi: POI): Promise<NearbyPlace[]> => {
     return new Promise((resolve, reject) => {
       const request: google.maps.places.PlaceSearchRequest = {
         location: new google.maps.LatLng(poi.lat, poi.lng),
@@ -157,15 +157,15 @@ const NearbySearchPage: React.FC = () => {
 
       service.nearbySearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-          const nearbyPlace = results[0];
-          resolve({
-            name: nearbyPlace.name || 'Unknown',
-            formatted_address: nearbyPlace.vicinity || 'Unknown address',
-            lat: nearbyPlace.geometry?.location?.lat() || 0,
-            lng: nearbyPlace.geometry?.location?.lng() || 0
-          });
+          const nearbyPlaces = results.slice(0, 20).map(place => ({
+            name: place.name || 'Unknown',
+            formatted_address: place.vicinity || 'Unknown address',
+            lat: place.geometry?.location?.lat() || 0,
+            lng: place.geometry?.location?.lng() || 0
+          }));
+          resolve(nearbyPlaces);
         } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-          resolve(null);
+          resolve([]);
         } else {
           reject(new Error(`Place search failed for POI: ${poi.name}. Status: ${status}`));
         }
@@ -224,42 +224,76 @@ const NearbySearchPage: React.FC = () => {
             <thead>
               <tr>
                 <th style={tableHeaderStyle}>Sub-Region</th>
-                <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
-                <th style={tableHeaderStyle}>Nearby Place Google</th>
-                <th style={tableHeaderStyle}>Nearby Place Address Google</th>
-                <th style={tableHeaderStyle}>Nearby Place Coordinates Google</th>
-                <th style={tableHeaderStyle}>Nearby Place HereWeGo</th>
-                <th style={tableHeaderStyle}>Nearby Place Address HereWeGo</th>
-                <th style={tableHeaderStyle}>Nearby Place Coordinates HereWeGo</th>
+                <th style={tableHeaderStyle}>POI LAT-LNG Coordinates</th>
+                <th style={tableHeaderStyle}>Google Places API Results</th>
+                <th style={tableHeaderStyle}>HERE API Results</th>
               </tr>
             </thead>
             <tbody>
               {groupedPOIs.map((group) => (
-                group.pois.map((poiData, index) => (
-                  <tr key={`${group.divisionIndex}-${index}`}>
-                    {index === 0 && (
-                      <td style={tableCellStyle} rowSpan={group.pois.length}>{group.divisionIndex}</td>
-                    )}
-                    <td style={tableCellStyle}>
-                      ({poiData.poi.lat.toFixed(6)}, {poiData.poi.lng.toFixed(6)})
-                    </td>
-                    <td style={tableCellStyle}>{poiData.nearbyPlace ? poiData.nearbyPlace.name : 'N/A'}</td>
-                    <td style={tableCellStyle}>{poiData.nearbyPlace ? poiData.nearbyPlace.formatted_address : 'N/A'}</td>
-                    <td style={tableCellStyle}>
-                      {poiData.nearbyPlace
-                        ? `(${poiData.nearbyPlace.lat.toFixed(6)}, ${poiData.nearbyPlace.lng.toFixed(6)})`
-                        : 'N/A'
-                      }
-                    </td>
-                    <td style={tableCellStyle}>{poiData.hereNearbyPlace ? poiData.hereNearbyPlace.name : 'N/A'}</td>
-                    <td style={tableCellStyle}>{poiData.hereNearbyPlace ? poiData.hereNearbyPlace.address : 'N/A'}</td>
-                    <td style={tableCellStyle}>
-                      {poiData.hereNearbyPlace
-                        ? `(${poiData.hereNearbyPlace.lat.toFixed(6)}, ${poiData.hereNearbyPlace.lng.toFixed(6)})`
-                        : 'N/A'
-                      }
-                    </td>
-                  </tr>
+                group.pois.map((poiData, poiIndex) => (
+                  <React.Fragment key={`${group.divisionIndex}-${poiIndex}`}>
+                    <tr>
+                      {poiIndex === 0 && (
+                        <td style={tableCellStyle} rowSpan={group.pois.length}>
+                          {group.divisionIndex}
+                        </td>
+                      )}
+                      <td style={tableCellStyle}>
+                        ({poiData.poi.lat.toFixed(6)}, {poiData.poi.lng.toFixed(6)})
+                      </td>
+                      <td style={tableCellStyle}>
+                        <table style={{ width: '100%' }}>
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Address</th>
+                              <th>Coordinates</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {poiData.nearbyPlaces.map((place, placeIndex) => (
+                              <tr key={`google-${placeIndex}`}>
+                                <td>{place.name}</td>
+                                <td>{place.formatted_address}</td>
+                                <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                              </tr>
+                            ))}
+                            {poiData.nearbyPlaces.length === 0 && (
+                              <tr>
+                                <td colSpan={3}>No results found</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </td>
+                      <td style={tableCellStyle}>
+                        <table style={{ width: '100%' }}>
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Address</th>
+                              <th>Coordinates</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {poiData.hereNearbyPlaces.map((place, placeIndex) => (
+                              <tr key={`here-${placeIndex}`}>
+                                <td>{place.name}</td>
+                                <td>{place.address}</td>
+                                <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                              </tr>
+                            ))}
+                            {poiData.hereNearbyPlaces.length === 0 && (
+                              <tr>
+                                <td colSpan={3}>No results found</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  </React.Fragment>
                 ))
               ))}
             </tbody>
