@@ -25,37 +25,40 @@ const GridDivisionsMap: React.FC = () => {
   const [boundingBoxDetails, setBoundingBoxDetails] = useState<string[]>([]);
   const [poiCount, setPoiCount] = useState<string>(''); // Changed from number to string
   const [enterClicked, setEnterClicked] = useState<boolean>(false);
+  const [isPlaceSelected, setIsPlaceSelected] = useState<boolean>(false);
 
   useEffect(() => {
     if (!mapRef.current || map !== undefined) return;
-
+  
     const onLoad = () => {
       const googleMap = new window.google.maps.Map(mapRef.current!, {
         center: { lat: 40.712776, lng: -74.005974 },
         zoom: 12,
       });
-
+  
       setMap(googleMap);
-
+  
       const autocompleteInstance = new window.google.maps.places.Autocomplete(searchInputRef.current!);
       autocompleteInstance.bindTo('bounds', googleMap);
       setAutocomplete(autocompleteInstance);
-
+  
       autocompleteInstance.addListener('place_changed', () => {
         const place = autocompleteInstance.getPlace();
         if (place.geometry) {
           googleMap.setCenter(place.geometry.location);
           googleMap.setZoom(12);
           setSelectedPlace(place);
-
+          setIsPlaceSelected(true);  // Add this line
+  
           drawPlaceOutline(place, googleMap);
           displayBoundingBoxCoords(place);
         } else {
           console.error('Place selected does not have geometry');
+          setIsPlaceSelected(false);  // Add this line
         }
       });
     };
-
+  
     if (!window.google) {
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
@@ -354,6 +357,10 @@ const GridDivisionsMap: React.FC = () => {
 
   const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!selectedPlace) {
+      alert("Please search and select a place before submitting.");
+      return;
+    }
     if (gridDivisions.M > 0 && gridDivisions.N > 0 && poiCount !== '') {
       handleEnterButtonClick();
     } else {
@@ -376,6 +383,7 @@ const GridDivisionsMap: React.FC = () => {
           placeholder="Search for a place"
           ref={searchInputRef}
           className='mapinput'
+          required
         />
       </div>
       <div className='map-container'>
@@ -389,42 +397,42 @@ const GridDivisionsMap: React.FC = () => {
         </div>
       </div>
       <form onSubmit={handleFormSubmit} className='control-panel'>
-      <label>Number of Rows (M):</label>
-      <input 
-        type="number" 
-        name="M" 
-        value={gridDivisions.M} 
-        onChange={handleGridDivisionsChange} 
-        onKeyPress={handleKeyPress}
-        required 
-        min="1"
-      />
-      <label>Number of Columns (N):</label>
-      <input 
-        type="number" 
-        name="N" 
-        value={gridDivisions.N} 
-        onChange={handleGridDivisionsChange} 
-        onKeyPress={handleKeyPress}
-        required 
-        min="1"
-      />
-      <label>Number of (Lat,Lng) (1-20):</label>
-      <input
-        type="number"
-        name="poiCount"
-        value={poiCount}
-        onChange={handlePoiCountChange}
-        onKeyPress={handleKeyPress}
-        min="1"
-        max="20"
-        placeholder="Enter POI count"
-        required
-      />
-      <button type="submit">Enter</button>
-      {enterClicked && <button type="button" onClick={handleNearbySearchClick}>Nearby Search</button>}
-      <button type="button" onClick={handlePageRefresh}>Reset</button>
-    </form>
+        <label>Number of Rows (M):</label>
+        <input
+          type="number"
+          name="M"
+          value={gridDivisions.M}
+          onChange={handleGridDivisionsChange}
+          onKeyPress={handleKeyPress}
+          required
+          min="1"
+        />
+        <label>Number of Columns (N):</label>
+        <input
+          type="number"
+          name="N"
+          value={gridDivisions.N}
+          onChange={handleGridDivisionsChange}
+          onKeyPress={handleKeyPress}
+          required
+          min="1"
+        />
+        <label>Number of (Lat,Lng) (1-20):</label>
+        <input
+          type="number"
+          name="poiCount"
+          value={poiCount}
+          onChange={handlePoiCountChange}
+          onKeyPress={handleKeyPress}
+          min="1"
+          max="20"
+          placeholder="Enter POI count"
+          required
+        />
+        <button type="submit" disabled={!isPlaceSelected}>Enter</button>
+        {enterClicked && <button type="button" onClick={handleNearbySearchClick}>Nearby Search</button>}
+        <button type="button" onClick={handlePageRefresh}>Reset</button>
+      </form>
 
       <div className='bounding-box-details'>
         {boundingBoxDetails.map((detail, index) => (
