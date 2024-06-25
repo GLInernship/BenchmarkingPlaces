@@ -42,26 +42,35 @@ interface HereNearbyPlace {
   lng: number;
 }
 
-
 const NearbySearchPage: React.FC = () => {
   const { divisionData, poiData } = useGridContext();
   const [groupedPOIs, setGroupedPOIs] = useState<GroupedPOI[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataSaved, setDataSaved] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   const location = useLocation();
   const { divisionIndex: totalDivisions, centers, searchRadius: initialSearchRadius, resultLimit: initialResultLimit } = location.state as LocationState;
 
-const [searchRadius, setSearchRadius] = useState<number>(initialSearchRadius);
-const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
+  const [searchRadius, setSearchRadius] = useState<number>(initialSearchRadius);
+  const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
 
+  const categories = [
+    { value: '', label: 'All' },
+    { value: 'restaurant', label: 'Restaurants' },
+    { value: 'cafe', label: 'Cafes' },
+    { value: 'park', label: 'Parks' },
+    { value: 'museum', label: 'Museums' },
+    { value: 'shopping_mall', label: 'Shopping Malls' },
+    // Add more categories as needed
+  ];
 
   useEffect(() => {
     if (centers.length > 0) {
       searchNearbyPlaces();
     }
-  }, [centers, searchRadius, resultLimit]);
+  }, [centers, searchRadius, resultLimit, selectedCategory]);
 
   const searchNearbyPlaces = async () => {
     setLoading(true);
@@ -76,7 +85,6 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
       for (const centerInfo of centers) {
         const poisInDivision = poiData.filter(poi => poi.divisionIndex === centerInfo.index);
 
-        // Get the address of the center coordinate
         const centerAddress = await getCenterAddress(geocoder, centerInfo.center);
 
         const poisWithNearbyPlaces = await Promise.all(poisInDivision.map(async (poi) => {
@@ -114,13 +122,14 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
 
   const searchHereNearbyPlace = async (poi: POI): Promise<HereNearbyPlace[]> => {
     try {
+      const hereCategory = selectedCategory ? mapGoogleCategoryToHere(selectedCategory) : '100';
       const response = await axios.get(`https://browse.search.hereapi.com/v1/browse`, {
         params: {
-          apiKey: '3EZevmR2R6YjSHBA7ZV420aLgcKuDrV7S55reCb-Ttw',
+          apiKey: 'Ec28CwX24sTC4cGNkLX1PxKCp0TDQZvCwX7xroJJHnw',
           at: `${poi.lat},${poi.lng}`,
           limit: resultLimit,
-          categories: '100',
-          radius: searchRadius
+          categories: hereCategory,
+          in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
         }
       });
   
@@ -135,8 +144,23 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
       return [];
     } catch (error) {
       console.error('Error searching HERE nearby place:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('AxiosError Details:', error.toJSON());
+      }
       return [];
     }
+  };
+
+  const mapGoogleCategoryToHere = (googleCategory: string): string => {
+    const categoryMap: { [key: string]: string } = {
+      'restaurant': '100-1000-0000',
+      'cafe': '100-1000-0003',
+      'park': '350-3000-0000',
+      'museum': '300-3100-0000',
+      'shopping_mall': '600-6100-0000',
+      // Add more mappings as needed
+    };
+    return categoryMap[googleCategory] || '100';
   };
 
   const getCenterAddress = (geocoder: google.maps.Geocoder, center: { lat: number; lng: number }): Promise<string> => {
@@ -152,35 +176,49 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
     });
   };
 
-  const searchNearbyPlace = (service: google.maps.places.PlacesService, poi: POI): Promise<NearbyPlace[]> => {
-    return new Promise((resolve, reject) => {
+  const searchNearbyPlace = async (service: google.maps.places.PlacesService, poi: POI): Promise<NearbyPlace[]> => {
+    try {
+      const results: NearbyPlace[] = [];
       const request: google.maps.places.PlaceSearchRequest = {
         location: new google.maps.LatLng(poi.lat, poi.lng),
         radius: searchRadius,
-        type: 'point_of_interest'
+        type: selectedCategory || 'point_of_interest',
       };
   
-      service.nearbySearch(request, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-          const nearbyPlaces = results.slice(0, resultLimit).map(place => ({
-            name: place.name || 'Unknown',
-            formatted_address: place.vicinity || 'Unknown address',
-            lat: place.geometry?.location?.lat() || 0,
-            lng: place.geometry?.location?.lng() || 0
-          }));
-          resolve(nearbyPlaces);
-        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-          resolve([]);
-        } else {
-          reject(new Error(`Place search failed for POI: ${poi.name}. Status: ${status}`));
-        }
-      });
-    });
+      const fetchResults = async (request: google.maps.places.PlaceSearchRequest) => {
+        return new Promise<void>((resolve, reject) => {
+          service.nearbySearch(request, (response, status, pagination) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && response) {
+              const nearbyPlaces = response.map(place => ({
+                name: place.name || 'Unknown',
+                formatted_address: place.vicinity || 'Unknown address',
+                lat: place.geometry?.location?.lat() || 0,
+                lng: place.geometry?.location?.lng() || 0
+              }));
+              results.push(...nearbyPlaces);
+  
+              if (pagination && pagination.hasNextPage && results.length < resultLimit) {
+                pagination.nextPage();
+              } else {
+                resolve();
+              }
+            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+              resolve();
+            } else {
+              reject(new Error(`Place search failed for POI: ${poi.name}. Status: ${status}`));
+            }
+          });
+        });
+      };
+  
+      await fetchResults(request);
+  
+      return results.slice(0, resultLimit);
+    } catch (error) {
+      console.error('Error searching nearby place:', error);
+      return [];
+    }
   };
-
-
-
-
 
   const handleSaveData = async () => {
     try {
@@ -195,12 +233,24 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
     }
   };
 
-
-
   return (
     <div>
       <h1>Nearby Search</h1>
       <p>Total Divisions: {totalDivisions}</p>
+      <div>
+        <label htmlFor="category-select">Select Category: </label>
+        <select
+          id="category-select"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          {categories.map((category) => (
+            <option key={category.value} value={category.value}>
+              {category.label}
+            </option>
+          ))}
+        </select>
+      </div>
       {loading && <p>Loading nearby places...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {!loading && !error && (
@@ -213,7 +263,7 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
             <thead>
               <tr>
                 <th style={tableHeaderStyle}>Sub-Region</th>
-                <th style={tableHeaderStyle}>POI LAT-LNG Coordinates</th>
+                <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
                 <th style={tableHeaderStyle}>Google Places API Results</th>
                 <th style={tableHeaderStyle}>HERE API Results</th>
               </tr>
@@ -241,7 +291,7 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
                             </tr>
                           </thead>
                           <tbody>
-                            {poiData.nearbyPlaces.map((place, placeIndex) => (
+                            {poiData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                               <tr key={`google-${placeIndex}`}>
                                 <td>{place.name}</td>
                                 <td>{place.formatted_address}</td>
@@ -266,7 +316,7 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
                             </tr>
                           </thead>
                           <tbody>
-                            {poiData.hereNearbyPlaces.map((place, placeIndex) => (
+                            {poiData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                               <tr key={`here-${placeIndex}`}>
                                 <td>{place.name}</td>
                                 <td>{place.address}</td>
