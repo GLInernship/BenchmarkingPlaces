@@ -23,7 +23,7 @@ const GridDivisionsMap: React.FC = () => {
   const [gridLines, setGridLines] = useState<google.maps.Polyline[]>([]);
   const [gridLabels, setGridLabels] = useState<google.maps.Marker[]>([]);
   const [boundingBoxDetails, setBoundingBoxDetails] = useState<string[]>([]);
-  const [poiCount, setPoiCount] = useState<number>(10); // Default number of POIs
+  const [poiCount, setPoiCount] = useState<string>(''); // Changed from number to string
   const [enterClicked, setEnterClicked] = useState<boolean>(false);
 
   useEffect(() => {
@@ -116,9 +116,10 @@ const GridDivisionsMap: React.FC = () => {
 
   const handleGridDivisionsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
+    const numValue = Math.abs(parseInt(value, 10)); // Ensure positive number
     setGridDivisions(prevState => ({
       ...prevState,
-      [name]: parseInt(value, 10)
+      [name]: isNaN(numValue) ? '' : numValue
     }));
   };
 
@@ -292,8 +293,8 @@ const GridDivisionsMap: React.FC = () => {
     return divisionData;
   };
 
-  const generateRandomPOIs = (bounds: { north: number, south: number, east: number, west: number }, count: number): { name: string, lat: number, lng: number }[] => {
-    const numPOIs = Math.min(Math.max(0, count), 20); // Ensure count is within 0-20 range
+  const generateRandomPOIs = (bounds: { north: number, south: number, east: number, west: number }, count: string): { name: string, lat: number, lng: number }[] => {
+    const numPOIs = count === '' ? 0 : Math.min(Math.max(0, parseInt(count, 10)), 20);
     const randomPOIs: { name: string, lat: number, lng: number }[] = [];
 
     for (let i = 0; i < numPOIs; i++) {
@@ -344,9 +345,26 @@ const GridDivisionsMap: React.FC = () => {
   };
 
   const handlePoiCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const count = parseInt(event.target.value, 10);
-    if (!isNaN(count)) {
-      setPoiCount(Math.min(Math.max(0, count), 20)); // Clamp count within 0-20 range
+    const value = event.target.value;
+    const numValue = Math.abs(parseInt(value, 10)); // Ensure positive number
+    if (value === '' || (numValue >= 0 && numValue <= 20)) {
+      setPoiCount(value === '' ? '' : numValue.toString());
+    }
+  };
+
+  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (gridDivisions.M > 0 && gridDivisions.N > 0 && poiCount !== '') {
+      handleEnterButtonClick();
+    } else {
+      alert("Please fill in all fields before submitting.");
+    }
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    // Prevent '+' and '-' from being entered
+    if (event.key === '+' || event.key === '-') {
+      event.preventDefault();
     }
   };
 
@@ -370,17 +388,44 @@ const GridDivisionsMap: React.FC = () => {
           ))}
         </div>
       </div>
-      <div className='control-panel'>
-        <label>Number of Rows (M):</label>
-        <input type="number" name="M" value={gridDivisions.M || 1} onChange={handleGridDivisionsChange} />
-        <label>Number of Columns (N):</label>
-        <input type="number" name="N" value={gridDivisions.N || 1} onChange={handleGridDivisionsChange} />
-        <label>Number of (Lat,Lng) (0-20):</label>
-        <input type="number" name="poiCount" value={poiCount || 1} min="0" max="20" onChange={handlePoiCountChange} />
-        <button onClick={handleEnterButtonClick}>Enter</button>
-        {enterClicked && <button onClick={handleNearbySearchClick}>Nearby Search</button>}
-        <button onClick={handlePageRefresh}>Reset</button>
-      </div>
+      <form onSubmit={handleFormSubmit} className='control-panel'>
+      <label>Number of Rows (M):</label>
+      <input 
+        type="number" 
+        name="M" 
+        value={gridDivisions.M} 
+        onChange={handleGridDivisionsChange} 
+        onKeyPress={handleKeyPress}
+        required 
+        min="1"
+      />
+      <label>Number of Columns (N):</label>
+      <input 
+        type="number" 
+        name="N" 
+        value={gridDivisions.N} 
+        onChange={handleGridDivisionsChange} 
+        onKeyPress={handleKeyPress}
+        required 
+        min="1"
+      />
+      <label>Number of (Lat,Lng) (0-20):</label>
+      <input
+        type="number"
+        name="poiCount"
+        value={poiCount}
+        onChange={handlePoiCountChange}
+        onKeyPress={handleKeyPress}
+        min="0"
+        max="20"
+        placeholder="Enter POI count"
+        required
+      />
+      <button type="submit">Enter</button>
+      {enterClicked && <button type="button" onClick={handleNearbySearchClick}>Nearby Search</button>}
+      <button type="button" onClick={handlePageRefresh}>Reset</button>
+    </form>
+
       <div className='bounding-box-details'>
         {boundingBoxDetails.map((detail, index) => (
           <div className='box-detail' key={index}>{detail}</div>
