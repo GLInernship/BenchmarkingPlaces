@@ -116,7 +116,7 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
     try {
       const response = await axios.get(`https://browse.search.hereapi.com/v1/browse`, {
         params: {
-          apiKey: 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q',
+          apiKey: '3EZevmR2R6YjSHBA7ZV420aLgcKuDrV7S55reCb-Ttw',
           at: `${poi.lat},${poi.lng}`,
           limit: resultLimit,
           categories: '100',
