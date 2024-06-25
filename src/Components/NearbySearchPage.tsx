@@ -241,7 +241,7 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
                             </tr>
                           </thead>
                           <tbody>
-                            {poiData.nearbyPlaces.map((place, placeIndex) => (
+                            {poiData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                               <tr key={`google-${placeIndex}`}>
                                 <td>{place.name}</td>
                                 <td>{place.formatted_address}</td>
@@ -266,7 +266,7 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
                             </tr>
                           </thead>
                           <tbody>
-                            {poiData.hereNearbyPlaces.map((place, placeIndex) => (
+                            {poiData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                               <tr key={`here-${placeIndex}`}>
                                 <td>{place.name}</td>
                                 <td>{place.address}</td>
