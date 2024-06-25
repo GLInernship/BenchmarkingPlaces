@@ -172,23 +172,23 @@ const GridDivisionsMap: React.FC = () => {
     if (selectedPlace) {
       const divisionData = drawGridDivisions();
       setDivisionData(divisionData);
-      setPoiData(divisionData.flatMap(division => division.pois.map((poi: any) => ({
-        ...poi,
-        divisionIndex: division.index
+      setPoiData(divisionData.flatMap(division => division.ranLatLonss.map((ranLatLons: any) => ({
+        ...ranLatLons,
+        subregion_id: division.subregion_id
       }))));
-      setEnterClicked(true); // Add this line
+      setEnterClicked(true);
     }
   };
   const handleNearbySearchClick = () => {
     if (selectedPlace) {
       const allDivisions = drawGridDivisions();
       const centers = allDivisions.map(division => ({
-        index: division.index,
+        index: division.subregion_id, // Changed from index to subregion_id
         center: division.center
       }));
       navigate('/nearby-search', {
         state: {
-          divisionIndex: gridDivisions.M * gridDivisions.N,
+          subregion_id: gridDivisions.M * gridDivisions.N, // Changed from divisionIndex to subregion_id
           centers: centers,
           searchRadius: searchRadius,
           resultLimit: resultLimit,
@@ -321,10 +321,10 @@ const GridDivisionsMap: React.FC = () => {
 
         // Store division data
         divisionData.push({
-          index: labelIndex,
+          subregion_id: labelIndex, // Changed from index to subregion_id
           bounds: boxCoords,
           center: { lat: centerLat, lng: centerLng },
-          pois: randomPOIs
+          ranLatLonss: randomPOIs // Changed from pois to ranLatLonss
         });
 
         newBoundingBoxDetails.push(`Random Lat-Lng:`);
@@ -354,8 +354,8 @@ const GridDivisionsMap: React.FC = () => {
     return randomPOIs;
   };
 
-  const displayRandomPOIs = (pois: { name: string, lat: number, lng: number }[]) => {
-    pois.forEach(poi => {
+    const displayRandomPOIs = (ranLatLonss: { name: string, lat: number, lng: number }[]) => {
+      ranLatLonss.forEach(ranLatLons => {
 
       const icon = {
         url: 'https://www.pngall.com/wp-content/uploads/13/Red-Circle.png',
@@ -365,9 +365,9 @@ const GridDivisionsMap: React.FC = () => {
       };
 
       new google.maps.Marker({
-        position: { lat: poi.lat, lng: poi.lng },
+        position: { lat: ranLatLons.lat, lng: ranLatLons.lng },
         map: map!,
-        title: poi.name,
+        title: ranLatLons.name,
         icon: icon
       });
     });

@@ -3,11 +3,11 @@ import { useGridContext } from './GridContext';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-interface POI {
+interface RanLatLons {
   name: string;
   lat: number;
   lng: number;
-  divisionIndex: number;
+  subregion_id: number;
 }
 
 interface NearbyPlace {
@@ -24,12 +24,12 @@ interface HereNearbyPlace {
   lng: number;
 }
 
-interface GroupedPOI {
-  divisionIndex: number;
+interface GroupedRLatLon {
+  subregion_id: number;
   center: { lat: number; lng: number };
   centerAddress: string;
-  pois: {
-    poi: POI;
+  ranLatLonss: {
+    ranLatLons: RanLatLons;
     nearbyPlaces: NearbyPlace[];
     hereNearbyPlaces: HereNearbyPlace[];
   }[];
@@ -42,7 +42,7 @@ interface PlaceType {
 }
 
 interface LocationState {
-  divisionIndex: number;
+  subregion_id: number;
   centers: { index: number; center: { lat: number; lng: number } }[];
   searchRadius: number;
   resultLimit: number;
@@ -51,14 +51,14 @@ interface LocationState {
 
 const NearbySearchPage: React.FC = () => {
   const { divisionData, poiData } = useGridContext();
-  const [groupedPOIs, setGroupedPOIs] = useState<GroupedPOI[]>([]);
+  const [groupedRLatLons, setGroupedRLatLons] = useState<GroupedRLatLon[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataSaved, setDataSaved] = useState(false);
 
   const location = useLocation();
   const { 
-    divisionIndex: totalDivisions, 
+    subregion_id: totalDivisions, 
     centers, 
     searchRadius: initialSearchRadius, 
     resultLimit: initialResultLimit, 
@@ -67,6 +67,7 @@ const NearbySearchPage: React.FC = () => {
 
   const [searchRadius, setSearchRadius] = useState<number>(initialSearchRadius);
   const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
+
 
   useEffect(() => {
     if (centers.length > 0) {
@@ -77,7 +78,7 @@ const NearbySearchPage: React.FC = () => {
   const searchNearbyPlaces = async () => {
     setLoading(true);
     setError(null);
-    const groupedResults: GroupedPOI[] = [];
+    const groupedResults: GroupedRLatLon[] = [];
     try {
       const mapElement = document.createElement('div');
       const map = new google.maps.Map(mapElement);
@@ -85,31 +86,31 @@ const NearbySearchPage: React.FC = () => {
       const geocoder = new google.maps.Geocoder();
 
       for (const centerInfo of centers) {
-        const poisInDivision = poiData.filter(poi => poi.divisionIndex === centerInfo.index);
+        const ranLatLonssInDivision = poiData.filter(poi => poi.subregion_id === centerInfo.index);
 
         const centerAddress = await getCenterAddress(geocoder, centerInfo.center);
 
-        const poisWithNearbyPlaces = await Promise.all(poisInDivision.map(async (poi) => {
+        const ranLatLonssWithNearbyPlaces = await Promise.all(ranLatLonssInDivision.map(async (ranLatLons) => {
           try {
             const [nearbyPlaces, hereNearbyPlaces] = await Promise.all([
-              searchNearbyPlace(service, poi),
-              searchHereNearbyPlace(poi)
+              searchNearbyPlace(service, ranLatLons),
+              searchHereNearbyPlace(ranLatLons)
             ]);
-            return { poi, nearbyPlaces, hereNearbyPlaces };
-          } catch (poiError) {
-            console.error('Error searching for POI:', poi, poiError);
-            return { poi, nearbyPlaces: [], hereNearbyPlaces: [] };
+            return { ranLatLons, nearbyPlaces, hereNearbyPlaces };
+          } catch (ranLatLonsError) {
+            console.error('Error searching for ranLatLons:', ranLatLons, ranLatLonsError);
+            return { ranLatLons, nearbyPlaces: [], hereNearbyPlaces: [] };
           }
         }));
 
         groupedResults.push({
-          divisionIndex: centerInfo.index,
+          subregion_id: centerInfo.index,
           center: centerInfo.center,
           centerAddress,
-          pois: poisWithNearbyPlaces
+          ranLatLonss: ranLatLonssWithNearbyPlaces
         });
       }
-      setGroupedPOIs(groupedResults);
+      setGroupedRLatLons(groupedResults);
     } catch (error: unknown) {
       console.error('Error in searchNearbyPlaces:', error);
       if (error instanceof Error) {
@@ -122,7 +123,7 @@ const NearbySearchPage: React.FC = () => {
     }
   };
 
-  const searchHereNearbyPlace = async (poi: POI): Promise<HereNearbyPlace[]> => {
+  const searchHereNearbyPlace = async (poi: RanLatLons): Promise<HereNearbyPlace[]> => {
     try {
       const response = await axios.get(`https://browse.search.hereapi.com/v1/browse`, {
         params: {
@@ -167,7 +168,7 @@ const NearbySearchPage: React.FC = () => {
     });
   };
 
-  const searchNearbyPlace = async (service: google.maps.places.PlacesService, poi: POI): Promise<NearbyPlace[]> => {
+  const searchNearbyPlace = async (service: google.maps.places.PlacesService, poi: RanLatLons): Promise<NearbyPlace[]> => {
     try {
       const results: NearbyPlace[] = [];
       const request: google.maps.places.PlaceSearchRequest = {
@@ -213,7 +214,10 @@ const NearbySearchPage: React.FC = () => {
 
   const handleSaveData = async () => {
     try {
-      const response = await axios.post('http://localhost:9000/api/save-nearby-places', { groupedPOIs });
+      const response = await axios.post('http://localhost:9000/api/save-nearby-places', { 
+        groupedRLatLons,
+        placeType
+      });
       if (response.status === 200) {
         setDataSaved(true);
         alert('Data saved successfully!');
@@ -247,17 +251,17 @@ const NearbySearchPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {groupedPOIs.map((group) => (
-                group.pois.map((poiData, poiIndex) => (
-                  <React.Fragment key={`${group.divisionIndex}-${poiIndex}`}>
+            {groupedRLatLons.map((group) => (
+                group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => (
+                  <React.Fragment key={`${group.subregion_id}-${ranLatLonsIndex}`}>
                     <tr>
-                      {poiIndex === 0 && (
-                        <td style={tableCellStyle} rowSpan={group.pois.length}>
-                          {group.divisionIndex}
+                      {ranLatLonsIndex === 0 && (
+                        <td style={tableCellStyle} rowSpan={group.ranLatLonss.length}>
+                          {group.subregion_id}
                         </td>
                       )}
                       <td style={tableCellStyle}>
-                        ({poiData.poi.lat.toFixed(6)}, {poiData.poi.lng.toFixed(6)})
+                        ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
                       </td>
                       <td style={tableCellStyle}>
                         <table style={{ width: '100%' }}>
@@ -269,14 +273,14 @@ const NearbySearchPage: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {poiData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
+                            {ranLatLonsData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                               <tr key={`google-${placeIndex}`}>
                                 <td>{place.name}</td>
                                 <td>{place.formatted_address}</td>
                                 <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
                               </tr>
                             ))}
-                            {poiData.nearbyPlaces.length === 0 && (
+                            {ranLatLonsData.nearbyPlaces.length === 0 && (
                               <tr>
                                 <td colSpan={3}>No results found</td>
                               </tr>
@@ -294,14 +298,14 @@ const NearbySearchPage: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {poiData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
+                            {ranLatLonsData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                               <tr key={`here-${placeIndex}`}>
                                 <td>{place.name}</td>
                                 <td>{place.address}</td>
                                 <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
                               </tr>
                             ))}
-                            {poiData.hereNearbyPlaces.length === 0 && (
+                            {ranLatLonsData.hereNearbyPlaces.length === 0 && (
                               <tr>
                                 <td colSpan={3}>No results found</td>
                               </tr>
