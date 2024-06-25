@@ -234,7 +234,7 @@ const NearbySearchPage: React.FC = () => {
             <thead>
               <tr>
                 <th style={tableHeaderStyle}>Sub-Region</th>
-                <th style={tableHeaderStyle}>POI LAT-LNG Coordinates</th>
+                <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
                 <th style={tableHeaderStyle}>Google Places API Results</th>
                 <th style={tableHeaderStyle}>HERE API Results</th>
               </tr>

@@ -301,7 +301,7 @@ const GridDivisionsMap: React.FC = () => {
           pois: randomPOIs
         });
 
-        newBoundingBoxDetails.push(`POIs:`);
+        newBoundingBoxDetails.push(`Random Lat-Lng:`);
         randomPOIs.forEach(poi => {
           newBoundingBoxDetails.push(`${poi.name} - (${poi.lat.toFixed(6)}, ${poi.lng.toFixed(6)})`);
         });
@@ -322,7 +322,7 @@ const GridDivisionsMap: React.FC = () => {
     for (let i = 0; i < numPOIs; i++) {
       const lat = bounds.south + Math.random() * (bounds.north - bounds.south);
       const lng = bounds.west + Math.random() * (bounds.east - bounds.west);
-      randomPOIs.push({ name: `POI ${i + 1}`, lat, lng });
+      randomPOIs.push({ name: `Point ${i + 1}`, lat, lng });
     }
 
     return randomPOIs;
@@ -436,7 +436,7 @@ const GridDivisionsMap: React.FC = () => {
           required
           min="1"
         />
-        <label>Number of (Lat,Lng) (1-20):</label>
+        <label>Number of (Lat, Lng) (1-20):</label>
         <input
           type="number"
           name="poiCount"
