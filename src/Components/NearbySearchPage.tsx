@@ -31,6 +31,8 @@ interface GroupedPOI {
 interface LocationState {
   divisionIndex: number;
   centers: { index: number; center: { lat: number; lng: number } }[];
+  searchRadius: number;
+  resultLimit: number;
 }
 
 interface HereNearbyPlace {
@@ -46,17 +48,20 @@ const NearbySearchPage: React.FC = () => {
   const [groupedPOIs, setGroupedPOIs] = useState<GroupedPOI[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchRadius, setSearchRadius] = useState<number>(1000); // Default radius of 1000 meters
   const [dataSaved, setDataSaved] = useState(false);
 
   const location = useLocation();
-  const { divisionIndex: totalDivisions, centers } = location.state as LocationState;
+  const { divisionIndex: totalDivisions, centers, searchRadius: initialSearchRadius, resultLimit: initialResultLimit } = location.state as LocationState;
+
+const [searchRadius, setSearchRadius] = useState<number>(initialSearchRadius);
+const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
+
 
   useEffect(() => {
     if (centers.length > 0) {
       searchNearbyPlaces();
     }
-  }, [centers]);
+  }, [centers, searchRadius, resultLimit]);
 
   const searchNearbyPlaces = async () => {
     setLoading(true);
@@ -113,12 +118,12 @@ const NearbySearchPage: React.FC = () => {
         params: {
           apiKey: 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q',
           at: `${poi.lat},${poi.lng}`,
-          limit: 25,  // Increase this to get more results
+          limit: resultLimit,
           categories: '100',
           radius: searchRadius
         }
       });
-
+  
       if (response.data.items && response.data.items.length > 0) {
         return response.data.items.map((item: any) => ({
           name: item.title,
@@ -154,10 +159,10 @@ const NearbySearchPage: React.FC = () => {
         radius: searchRadius,
         type: 'point_of_interest'
       };
-
+  
       service.nearbySearch(request, (results, status) => {
         if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-          const nearbyPlaces = results.slice(0, 20).map(place => ({
+          const nearbyPlaces = results.slice(0, resultLimit).map(place => ({
             name: place.name || 'Unknown',
             formatted_address: place.vicinity || 'Unknown address',
             lat: place.geometry?.location?.lat() || 0,
@@ -173,16 +178,9 @@ const NearbySearchPage: React.FC = () => {
     });
   };
 
-  const handleRadiusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(event.target.value);
-    if (!isNaN(value) && value > 0) {
-      setSearchRadius(value);
-    }
-  };
 
-  const handleSearchClick = () => {
-    searchNearbyPlaces();
-  };
+
+
 
   const handleSaveData = async () => {
     try {
@@ -197,21 +195,12 @@ const NearbySearchPage: React.FC = () => {
     }
   };
 
+
+
   return (
     <div>
       <h1>Nearby Search</h1>
       <p>Total Divisions: {totalDivisions}</p>
-      <div>
-        <label htmlFor="radius">Search Radius (meters): </label>
-        <input
-          type="number"
-          id="radius"
-          value={searchRadius}
-          onChange={handleRadiusChange}
-          min="1"
-        />
-        <button onClick={handleSearchClick}>Search</button>
-      </div>
       {loading && <p>Loading nearby places...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {!loading && !error && (
