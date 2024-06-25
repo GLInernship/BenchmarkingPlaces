@@ -120,7 +120,7 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
           at: `${poi.lat},${poi.lng}`,
           limit: resultLimit,
           categories: '100',
-          radius: searchRadius
+          in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
         }
       });
   
