@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGridContext } from './GridContext';
 import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 interface POI {
   name: string;
@@ -37,6 +38,7 @@ const NearbySearchPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchRadius, setSearchRadius] = useState<number>(1000); // Default radius of 1000 meters
+  const [dataSaved, setDataSaved] = useState(false);
 
   const location = useLocation();
   const { divisionIndex: totalDivisions, centers } = location.state as LocationState;
@@ -143,6 +145,19 @@ const NearbySearchPage: React.FC = () => {
     searchNearbyPlaces();
   };
 
+  const handleSaveData = async () => {
+    try {
+      const response = await axios.post('http://localhost:9000/api/save-nearby-places', { groupedPOIs });
+      if (response.status === 200) {
+        setDataSaved(true);
+        alert('Data saved successfully!');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('Failed to save data. Please try again.');
+    }
+  };
+
   return (
     <div>
       <h1>Nearby Search</h1>
@@ -163,6 +178,9 @@ const NearbySearchPage: React.FC = () => {
       {!loading && !error && (
         <>
           <h2>Grouped Nearby Places:</h2>
+          <button onClick={handleSaveData} disabled={dataSaved}>
+            {dataSaved ? 'Data Saved' : 'Save Data'}
+          </button>
           {groupedPOIs.map((group, groupIndex) => (
             <div key={groupIndex}>
               <h3>Sub-Region: {group.divisionIndex}----{group.centerAddress}</h3>
