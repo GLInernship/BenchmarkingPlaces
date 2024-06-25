@@ -181,30 +181,63 @@ const NearbySearchPage: React.FC = () => {
           <button onClick={handleSaveData} disabled={dataSaved}>
             {dataSaved ? 'Data Saved' : 'Save Data'}
           </button>
-          {groupedPOIs.map((group, groupIndex) => (
-            <div key={groupIndex}>
-              <h3>Sub-Region: {group.divisionIndex}----{group.centerAddress}</h3>
-              <p>Center: (Lat: {group.center.lat.toFixed(6)}, Lng: {group.center.lng.toFixed(6)})</p>
-              {group.pois.map((poiData, poiIndex) => (
-                <div key={poiIndex}>
-                  <h4>POI: {poiData.poi.name} (Lat: {poiData.poi.lat.toFixed(6)}, Lng: {poiData.poi.lng.toFixed(6)})</h4>
-                  {poiData.nearbyPlace ? (
-                    <p>
-                      Nearby Place: {poiData.nearbyPlace.name} - {poiData.nearbyPlace.formatted_address}
-                      <br />
-                      Lat: {poiData.nearbyPlace.lat.toFixed(6)}, Lng: {poiData.nearbyPlace.lng.toFixed(6)}
-                    </p>
-                  ) : (
-                    <p>No nearby place found for this POI.</p>
-                  )}
-                </div>
+          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+            <thead>
+              <tr>
+                <th style={tableHeaderStyle}>Sub-Region</th>
+                {/* <th style={tableHeaderStyle}>Center Address</th>
+                <th style={tableHeaderStyle}>Center Coordinates</th> */}
+                <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
+                <th style={tableHeaderStyle}>Nearby Place</th>
+                <th style={tableHeaderStyle}>Nearby Place Address</th>
+                <th style={tableHeaderStyle}>Nearby Place Coordinates</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groupedPOIs.map((group) => (
+                group.pois.map((poiData, index) => (
+                  <tr key={`${group.divisionIndex}-${index}`}>
+                    {index === 0 && (
+                      <>
+                        <td style={tableCellStyle} rowSpan={group.pois.length}>{group.divisionIndex}</td>
+                        {/* <td style={tableCellStyle} rowSpan={group.pois.length}>{group.centerAddress}</td> */}
+                        {/* <td style={tableCellStyle} rowSpan={group.pois.length}>
+                          ({group.center.lat.toFixed(6)}, {group.center.lng.toFixed(6)})
+                        </td> */}
+                      </>
+                    )}
+                    <td style={tableCellStyle}>
+                      ({poiData.poi.lat.toFixed(6)}, {poiData.poi.lng.toFixed(6)})
+                    </td>
+                    <td style={tableCellStyle}>{poiData.nearbyPlace ? poiData.nearbyPlace.name : 'N/A'}</td>
+                    <td style={tableCellStyle}>{poiData.nearbyPlace ? poiData.nearbyPlace.formatted_address : 'N/A'}</td>
+                    <td style={tableCellStyle}>
+                      {poiData.nearbyPlace 
+                        ? `(${poiData.nearbyPlace.lat.toFixed(6)}, ${poiData.nearbyPlace.lng.toFixed(6)})`
+                        : 'N/A'
+                      }
+                    </td>
+                  </tr>
+                ))
               ))}
-            </div>
-          ))}
+            </tbody>
+          </table>
         </>
       )}
     </div>
   );
+};
+
+const tableHeaderStyle = {
+  border: '1px solid black',
+  padding: '8px',
+  backgroundColor: '#f2f2f2',
+  fontWeight: 'bold',
+};
+
+const tableCellStyle = {
+  border: '1px solid black',
+  padding: '8px',
 };
 
 export default NearbySearchPage;
