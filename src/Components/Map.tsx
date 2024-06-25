@@ -38,7 +38,7 @@ const GridDivisionsMap: React.FC = () => {
 
   const handleResultLimitChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(event.target.value);
-    if (!isNaN(value) && value > 0 && value <= 50) {
+    if (!isNaN(value) && value > 0 && value <= 60) {
       setResultLimit(value);
     }
   };
@@ -459,7 +459,7 @@ const GridDivisionsMap: React.FC = () => {
           min="1"
         />
         
-        <label>Result Limit (1-50):</label>
+        <label>Result Limit (1-60):</label>
         <input
           type="number"
           name="resultLimit"
@@ -468,7 +468,7 @@ const GridDivisionsMap: React.FC = () => {
           onKeyPress={handleKeyPress}
           required
           min="1"
-          max="50"
+          max="60"
         />
        <button type="submit" disabled={!isPlaceSelected}>Enter</button>
         {enterClicked && <button type="button" onClick={handleNearbySearchClick}>Nearby Search</button>}

@@ -172,10 +172,10 @@ const NearbySearchPage: React.FC = () => {
               results.push(...nearbyPlaces);
   
               // Check if there is another page of results
-              if (pagination && pagination.hasNextPage) {
+              if (pagination && pagination.hasNextPage && results.length < resultLimit) {
                 pagination.nextPage(); // Fetch next page of results
               } else {
-                resolve(); // Resolve promise when all pages are fetched
+                resolve(); // Resolve promise when all pages are fetched or limit is reached
               }
             } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
               resolve(); // No more results to fetch
@@ -186,8 +186,8 @@ const NearbySearchPage: React.FC = () => {
         });
       };
   
-      // Fetch up to 3 pages of results (60 places) or until resultLimit is reached
-      await Promise.all([1, 2, 3].map(() => fetchResults(request)));
+      // Fetch results until resultLimit is reached or no more pages available
+      await fetchResults(request);
   
       return results.slice(0, resultLimit); // Ensure we limit to resultLimit
     } catch (error) {
@@ -195,6 +195,7 @@ const NearbySearchPage: React.FC = () => {
       return [];
     }
   };
+  
   
 
   const handleSaveData = async () => {
