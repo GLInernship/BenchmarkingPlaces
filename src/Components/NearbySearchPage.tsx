@@ -42,7 +42,6 @@ interface HereNearbyPlace {
   lng: number;
 }
 
-
 const NearbySearchPage: React.FC = () => {
   const { divisionData, poiData } = useGridContext();
   const [groupedPOIs, setGroupedPOIs] = useState<GroupedPOI[]>([]);
@@ -53,9 +52,8 @@ const NearbySearchPage: React.FC = () => {
   const location = useLocation();
   const { divisionIndex: totalDivisions, centers, searchRadius: initialSearchRadius, resultLimit: initialResultLimit } = location.state as LocationState;
 
-const [searchRadius, setSearchRadius] = useState<number>(initialSearchRadius);
-const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
-
+  const [searchRadius, setSearchRadius] = useState<number>(initialSearchRadius);
+  const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
 
   useEffect(() => {
     if (centers.length > 0) {
@@ -116,14 +114,14 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
     try {
       const response = await axios.get(`https://browse.search.hereapi.com/v1/browse`, {
         params: {
-          apiKey: '3EZevmR2R6YjSHBA7ZV420aLgcKuDrV7S55reCb-Ttw',
+          apiKey: 'YOUR_HERE_API_KEY',
           at: `${poi.lat},${poi.lng}`,
           limit: resultLimit,
           categories: '100',
           in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
         }
       });
-  
+
       if (response.data.items && response.data.items.length > 0) {
         return response.data.items.map((item: any) => ({
           name: item.title,
@@ -152,35 +150,52 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
     });
   };
 
-  const searchNearbyPlace = (service: google.maps.places.PlacesService, poi: POI): Promise<NearbyPlace[]> => {
-    return new Promise((resolve, reject) => {
+  const searchNearbyPlace = async (service: google.maps.places.PlacesService, poi: POI): Promise<NearbyPlace[]> => {
+    try {
+      const results: NearbyPlace[] = [];
       const request: google.maps.places.PlaceSearchRequest = {
         location: new google.maps.LatLng(poi.lat, poi.lng),
         radius: searchRadius,
-        type: 'point_of_interest'
+        type: 'point_of_interest',
       };
   
-      service.nearbySearch(request, (results, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && results && results.length > 0) {
-          const nearbyPlaces = results.slice(0, resultLimit).map(place => ({
-            name: place.name || 'Unknown',
-            formatted_address: place.vicinity || 'Unknown address',
-            lat: place.geometry?.location?.lat() || 0,
-            lng: place.geometry?.location?.lng() || 0
-          }));
-          resolve(nearbyPlaces);
-        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-          resolve([]);
-        } else {
-          reject(new Error(`Place search failed for POI: ${poi.name}. Status: ${status}`));
-        }
-      });
-    });
+      const fetchResults = async (request: google.maps.places.PlaceSearchRequest) => {
+        return new Promise<void>((resolve, reject) => {
+          service.nearbySearch(request, (response, status, pagination) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && response) {
+              const nearbyPlaces = response.map(place => ({
+                name: place.name || 'Unknown',
+                formatted_address: place.vicinity || 'Unknown address',
+                lat: place.geometry?.location?.lat() || 0,
+                lng: place.geometry?.location?.lng() || 0
+              }));
+              results.push(...nearbyPlaces);
+  
+              // Check if there is another page of results
+              if (pagination && pagination.hasNextPage) {
+                pagination.nextPage(); // Fetch next page of results
+              } else {
+                resolve(); // Resolve promise when all pages are fetched
+              }
+            } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+              resolve(); // No more results to fetch
+            } else {
+              reject(new Error(`Place search failed for POI: ${poi.name}. Status: ${status}`));
+            }
+          });
+        });
+      };
+  
+      // Fetch up to 3 pages of results (60 places) or until resultLimit is reached
+      await Promise.all([1, 2, 3].map(() => fetchResults(request)));
+  
+      return results.slice(0, resultLimit); // Ensure we limit to resultLimit
+    } catch (error) {
+      console.error('Error searching nearby place:', error);
+      return [];
+    }
   };
-
-
-
-
+  
 
   const handleSaveData = async () => {
     try {
@@ -194,8 +209,6 @@ const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
       alert('Failed to save data. Please try again.');
     }
   };
-
-
 
   return (
     <div>
