@@ -17,6 +17,13 @@ interface NearbyPlace {
   lng: number;
 }
 
+interface HereNearbyPlace {
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
+
 interface GroupedPOI {
   divisionIndex: number;
   center: { lat: number; lng: number };
@@ -28,18 +35,18 @@ interface GroupedPOI {
   }[];
 }
 
+interface PlaceType {
+  label: string;
+  googleValue: string;
+  hereValue: string;
+}
+
 interface LocationState {
   divisionIndex: number;
   centers: { index: number; center: { lat: number; lng: number } }[];
   searchRadius: number;
   resultLimit: number;
-}
-
-interface HereNearbyPlace {
-  name: string;
-  address: string;
-  lat: number;
-  lng: number;
+  placeType: PlaceType;
 }
 
 const NearbySearchPage: React.FC = () => {
@@ -50,7 +57,13 @@ const NearbySearchPage: React.FC = () => {
   const [dataSaved, setDataSaved] = useState(false);
 
   const location = useLocation();
-  const { divisionIndex: totalDivisions, centers, searchRadius: initialSearchRadius, resultLimit: initialResultLimit } = location.state as LocationState;
+  const { 
+    divisionIndex: totalDivisions, 
+    centers, 
+    searchRadius: initialSearchRadius, 
+    resultLimit: initialResultLimit, 
+    placeType 
+  } = location.state as LocationState;
 
   const [searchRadius, setSearchRadius] = useState<number>(initialSearchRadius);
   const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
@@ -74,7 +87,6 @@ const NearbySearchPage: React.FC = () => {
       for (const centerInfo of centers) {
         const poisInDivision = poiData.filter(poi => poi.divisionIndex === centerInfo.index);
 
-        // Get the address of the center coordinate
         const centerAddress = await getCenterAddress(geocoder, centerInfo.center);
 
         const poisWithNearbyPlaces = await Promise.all(poisInDivision.map(async (poi) => {
@@ -117,7 +129,7 @@ const NearbySearchPage: React.FC = () => {
           apiKey: 'Ec28CwX24sTC4cGNkLX1PxKCp0TDQZvCwX7xroJJHnw',
           at: `${poi.lat},${poi.lng}`,
           limit: resultLimit,
-          categories: '100',
+          categories: placeType.hereValue,
           in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
         }
       });
@@ -134,7 +146,6 @@ const NearbySearchPage: React.FC = () => {
     } catch (error) {
       console.error('Error searching HERE nearby place:', error);
   
-      // Log detailed AxiosError information
       if (axios.isAxiosError(error)) {
         console.error('AxiosError Details:', error.toJSON());
       }
@@ -142,7 +153,6 @@ const NearbySearchPage: React.FC = () => {
       return [];
     }
   };
-  
 
   const getCenterAddress = (geocoder: google.maps.Geocoder, center: { lat: number; lng: number }): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -162,8 +172,8 @@ const NearbySearchPage: React.FC = () => {
       const results: NearbyPlace[] = [];
       const request: google.maps.places.PlaceSearchRequest = {
         location: new google.maps.LatLng(poi.lat, poi.lng),
-        radius: searchRadius,
-        type: 'point_of_interest',
+  radius: searchRadius,
+  type: placeType.googleValue as string,
       };
   
       const fetchResults = async (request: google.maps.places.PlaceSearchRequest) => {
@@ -178,14 +188,13 @@ const NearbySearchPage: React.FC = () => {
               }));
               results.push(...nearbyPlaces);
   
-              // Check if there is another page of results
               if (pagination && pagination.hasNextPage && results.length < resultLimit) {
-                pagination.nextPage(); // Fetch next page of results
+                pagination.nextPage();
               } else {
-                resolve(); // Resolve promise when all pages are fetched or limit is reached
+                resolve();
               }
             } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-              resolve(); // No more results to fetch
+              resolve();
             } else {
               reject(new Error(`Place search failed for POI: ${poi.name}. Status: ${status}`));
             }
@@ -193,17 +202,14 @@ const NearbySearchPage: React.FC = () => {
         });
       };
   
-      // Fetch results until resultLimit is reached or no more pages available
       await fetchResults(request);
   
-      return results.slice(0, resultLimit); // Ensure we limit to resultLimit
+      return results.slice(0, resultLimit);
     } catch (error) {
       console.error('Error searching nearby place:', error);
       return [];
     }
   };
-  
-  
 
   const handleSaveData = async () => {
     try {
@@ -222,6 +228,7 @@ const NearbySearchPage: React.FC = () => {
     <div>
       <h1>Nearby Search</h1>
       <p>Total Divisions: {totalDivisions}</p>
+      <p>Place Type: {placeType.label}</p>
       {loading && <p>Loading nearby places...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {!loading && !error && (

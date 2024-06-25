@@ -8,6 +8,24 @@ const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replac
 
 interface GoogleMap extends google.maps.Map { }
 
+interface PlaceType {
+  label: string;
+  googleValue: string;
+  hereValue: string;
+}
+
+const placeTypeOptions: PlaceType[] = [
+  { label: "Restaurant", googleValue: "restaurant", hereValue: "100-1000-0000" },
+  { label: "Cafe", googleValue: "cafe", hereValue: "100-1000-0007" },
+  { label: "Park", googleValue: "park", hereValue: "550-5510-0202" },
+  { label: "Museum", googleValue: "museum", hereValue: "300-3100-0000" },
+  { label: "Shopping", googleValue: "shopping_mall", hereValue: "600-6100-0062" },
+  { label: "Hotel", googleValue: "lodging", hereValue: "500-5100-0000" },
+  { label: "Hospital", googleValue: "hospital", hereValue: "800-8000-0159" },
+  { label: "Bank", googleValue: "bank", hereValue: "700-7000-0107" },
+  { label: "School", googleValue: "school", hereValue: "800-8200-0174" },
+];
+
 const GridDivisionsMap: React.FC = () => {
   const navigate = useNavigate();
   const { setDivisionData, setPoiData } = useGridContext();
@@ -29,6 +47,8 @@ const GridDivisionsMap: React.FC = () => {
   const [searchRadius, setSearchRadius] = useState<number>(1000);
   const [resultLimit, setResultLimit] = useState<number>(20);
 
+  const [placeType, setPlaceType] = useState<PlaceType>(placeTypeOptions[0]);
+
   const handleSearchRadiusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(event.target.value);
     if (!isNaN(value) && value > 0) {
@@ -41,6 +61,11 @@ const GridDivisionsMap: React.FC = () => {
     if (!isNaN(value) && value > 0 && value <= 60) {
       setResultLimit(value);
     }
+  };
+
+  const handlePlaceTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedType = placeTypeOptions.find(option => option.label === event.target.value);
+    setPlaceType(selectedType || placeTypeOptions[0]);
   };
 
 
@@ -166,7 +191,8 @@ const GridDivisionsMap: React.FC = () => {
           divisionIndex: gridDivisions.M * gridDivisions.N,
           centers: centers,
           searchRadius: searchRadius,
-          resultLimit: resultLimit
+          resultLimit: resultLimit,
+          placeType: placeType
         }
       });
     } else {
@@ -448,6 +474,16 @@ const GridDivisionsMap: React.FC = () => {
           placeholder="Enter POI count"
           required
         />
+        <label>Place Type:</label>
+        <select
+          value={placeType.label}
+          onChange={handlePlaceTypeChange}
+          required
+        >
+          {placeTypeOptions.map(option => (
+            <option key={option.label} value={option.label}>{option.label}</option>
+          ))}
+        </select>
         <label>Search Radius (meters):</label>
         <input
           type="number"
