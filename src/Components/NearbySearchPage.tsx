@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useGridContext } from './GridContext';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 interface RanLatLons {
   name: string;
@@ -70,6 +71,12 @@ const NearbySearchPage: React.FC = () => {
   const [searchRadius, setSearchRadius] = useState<number>(initialSearchRadius);
   const [resultLimit, setResultLimit] = useState<number>(initialResultLimit);
 
+  const navigate = useNavigate();
+
+  const handleNextPage = () => {
+    navigate('/result-page', { state: { groupedRLatLons, placeType } });
+  };
+
 
   useEffect(() => {
     if (centers.length > 0) {
@@ -128,7 +135,7 @@ const NearbySearchPage: React.FC = () => {
   const searchHereNearbyPlace = async (poi: RanLatLons): Promise<HereNearbyPlace[]> => {
     try {
       const params: any = {
-        apiKey: 'PH2VSIzVbqZj7eUACGByNuWl8jjHSzaV8FnM2qPEqMQ',
+        apiKey: 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q',
         at: `${poi.lat},${poi.lng}`,
         limit: resultLimit,
         in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
@@ -198,6 +205,8 @@ const NearbySearchPage: React.FC = () => {
               }));
               results.push(...nearbyPlaces);
 
+              console.log('Response-',response[0]);
+
               if (pagination && pagination.hasNextPage && results.length < resultLimit) {
                 pagination.nextPage();
               } else {
@@ -241,6 +250,8 @@ const NearbySearchPage: React.FC = () => {
     }
   };
 
+  
+
   return (
     <div>
       <h1>Nearby Search</h1>
@@ -253,6 +264,9 @@ const NearbySearchPage: React.FC = () => {
           <h2>Grouped Nearby Places:</h2>
           <button onClick={handleSaveData} disabled={dataSaved}>
             {dataSaved ? 'Data Saved' : 'Save Data'}
+          </button>
+          <button onClick={handleNextPage}>
+            Compare Data Between HERE and GOOGLE
           </button>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
   <thead>
