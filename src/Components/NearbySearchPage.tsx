@@ -127,7 +127,7 @@ const NearbySearchPage: React.FC = () => {
     try {
       const response = await axios.get(`https://browse.search.hereapi.com/v1/browse`, {
         params: {
-          apiKey: 'Ec28CwX24sTC4cGNkLX1PxKCp0TDQZvCwX7xroJJHnw',
+          apiKey: '0jGKkBq4qSJKJ5mWdkmRAwuTBhYhAI8D56R5O5IbSPs',
           at: `${poi.lat},${poi.lng}`,
           limit: resultLimit,
           categories: placeType.hereValue,
@@ -214,7 +214,7 @@ const NearbySearchPage: React.FC = () => {
 
   const handleSaveData = async () => {
     try {
-      const response = await axios.post('http://localhost:9000/api/save-nearby-places', { 
+      const response = await axios.post('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/save-nearby-places', { 
         groupedRLatLons,
         placeType
       });
