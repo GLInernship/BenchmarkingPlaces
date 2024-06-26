@@ -78,7 +78,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
     const fetchResults = async () => {
       const hereResults: { [key: string]: HereAddressSearchState } = {};
       const googleResults: { [key: string]: GoogleGeocodingState } = {};
-  
+
       for (const group of groupedRLatLons) {
         for (const ranLatLonsData of group.ranLatLonss) {
           // HERE API calls for Google Places results
@@ -87,7 +87,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
             if (place.formatted_address && !hereResults[searchKey]) {
               hereResults[searchKey] = { result: null, loading: true, error: null };
               setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
-  
+
               try {
                 const result = await searchHereAddress(place.name, place.formatted_address);
                 hereResults[searchKey] = { result, loading: false, error: null };
@@ -98,14 +98,14 @@ const ResultPage: React.FC<ResultPageProps> = () => {
               setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
             }
           }
-  
+
           // Google Geocoding API calls for HERE results
           for (const place of ranLatLonsData.hereNearbyPlaces) {
             const searchKey = `${place.name}-${place.address}`;
             if (place.address && !googleResults[searchKey]) {
               googleResults[searchKey] = { result: null, loading: true, error: null };
               setGoogleGeocodingResults(prevState => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
-  
+
               try {
                 const result = await searchGooglePlace(place.name, place.address);
                 googleResults[searchKey] = { result, loading: false, error: null };
@@ -119,7 +119,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
         }
       }
     };
-  
+
     fetchResults();
   }, [groupedRLatLons]);
 
@@ -127,7 +127,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
     const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q'; // Replace with your actual HERE API key
     const encodedAddress = encodeURIComponent(address);
     const encodedName = encodeURIComponent(name);
-    const url = `https://geocode.search.hereapi.com/v1/geocode?q=${encodedName}+${encodedAddress}&apiKey=${HERE_API_KEY}`;
+    const url = `https://geocode.search.hereapi.com/v1/geocode?q=${encodedName},${encodedAddress}&apiKey=${HERE_API_KEY}`;
 
     try {
       const response = await axios.get(url);
@@ -149,7 +149,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   const searchGooglePlace = async (name: string, address: string): Promise<GooglePlaceResult> => {
     const GOOGLE_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual Google API key
     const encodedQuery = encodeURIComponent(`${address}`);
-    const url = `/maps/api/place/textsearch/json?query=${encodedQuery}&key=${GOOGLE_API_KEY}`;  
+    const url = `/maps/api/place/textsearch/json?query=${encodedQuery}&key=${GOOGLE_API_KEY}`;
     try {
       const response = await axios.get(url);
       const result = response.data.results[0];
@@ -175,8 +175,14 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   };
 
   const tableCellStyle: React.CSSProperties = {
-    border: '1px solid black',
+    border: '2px solid black',
     padding: '8px',
+  };
+
+  const tableCellStyleWithGap = { // Assuming tableCellStyle is an existing style object you want to keep
+    ...tableCellStyle,
+    borderBottom: '20px solid transparent',
+    paddingBottom: '10px', // Adjust the '10px' as needed to control the gap size
   };
 
   return (
@@ -208,27 +214,27 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                     ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
                   </td>
                   <td style={tableCellStyle}>
-                    <table style={{ width: '100%' }}>
+                    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 10px' }}> {/* Adjusted table style for spacing */}
                       <thead>
                         <tr>
-                          <th>Name</th>
-                          <th>Type</th>
-                          <th>Address</th>
-                          <th>Coordinates</th>
+                          <th style={tableCellStyleWithGap}>Name</th>
+                          <th style={tableCellStyleWithGap}>Type</th>
+                          <th style={tableCellStyleWithGap}>Address</th>
+                          <th style={tableCellStyleWithGap}>Coordinates</th>
                         </tr>
                       </thead>
                       <tbody>
                         {ranLatLonsData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                           <tr key={`google-${placeIndex}`}>
-                            <td>{place.name}</td>
-                            <td>{place.types ? place.types[0] : 'N/A'}</td>
-                            <td>{place.formatted_address}</td>
-                            <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                            <td style={tableCellStyleWithGap}>{place.name}</td>
+                            <td style={tableCellStyleWithGap}>{place.types ? place.types[0] : 'N/A'}</td>
+                            <td style={tableCellStyleWithGap}>{place.formatted_address}</td>
+                            <td style={tableCellStyleWithGap}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
                           </tr>
                         ))}
                         {ranLatLonsData.nearbyPlaces.length === 0 && (
                           <tr>
-                            <td colSpan={4}>No results found</td>
+                            <td colSpan={4} style={tableCellStyleWithGap} >No results found</td>
                           </tr>
                         )}
                       </tbody>
@@ -252,13 +258,13 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                           .sort((a, b) => a.name.localeCompare(b.name))
                           .map((place, placeIndex) => (
                             <tr key={`here-google-${placeIndex}`}>
-                              <td>{place.hereResultState?.result?.name || 'N/A'}</td>
-                              <td>
+                              <td style={tableCellStyleWithGap}>{place.hereResultState?.result?.name || 'N/A'}</td>
+                              <td style={tableCellStyleWithGap}>
                                 {place.hereResultState?.result
                                   ? `(${place.hereResultState.result.lat.toFixed(6)}, ${place.hereResultState.result.lng.toFixed(6)})`
                                   : 'N/A'}
                               </td>
-                              <td>
+                              <td style={tableCellStyleWithGap}>
                                 {place.hereResultState?.loading ? 'Loading...' :
                                   place.hereResultState?.error ? `Error: ${place.hereResultState.error}` :
                                     'Completed'}
@@ -267,78 +273,78 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                           ))}
                         {ranLatLonsData.nearbyPlaces.length === 0 && (
                           <tr>
-                            <td colSpan={3}>No results found</td>
+                            <td colSpan={3} style={tableCellStyleWithGap}>No results found</td>
                           </tr>
                         )}
                       </tbody>
                     </table>
                   </td>
                   <td style={tableCellStyle}>
-                    <table style={{ width: '100%' }}>
+                    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 10px' }}> {/* Adjusted table style for spacing */}
                       <thead>
                         <tr>
-                          <th>Name</th>
-                          <th>Type</th>
-                          <th>Address</th>
-                          <th>Coordinates</th>
+                          <th style={tableCellStyleWithGap}>Name</th>
+                          <th style={tableCellStyleWithGap}>Type</th>
+                          <th style={tableCellStyleWithGap}>Address</th>
+                          <th style={tableCellStyleWithGap}>Coordinates</th>
                         </tr>
                       </thead>
                       <tbody>
                         {ranLatLonsData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                           <tr key={`here-${placeIndex}`}>
-                            <td>{place.name}</td>
-                            <td>{place.categoryType || 'N/A'}</td>
-                            <td>{place.address}</td>
-                            <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                            <td style={tableCellStyleWithGap}>{place.name}</td>
+                            <td style={tableCellStyleWithGap}>{place.categoryType || 'N/A'}</td>
+                            <td style={tableCellStyleWithGap}>{place.address}</td>
+                            <td style={tableCellStyleWithGap}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
                           </tr>
                         ))}
                         {ranLatLonsData.hereNearbyPlaces.length === 0 && (
                           <tr>
-                            <td colSpan={4}>No results found</td>
+                            <td colSpan={4} style={tableCellStyleWithGap}>No results found</td>
                           </tr>
                         )}
                       </tbody>
                     </table>
                   </td>
-                  <td style={tableCellStyle}>
-      <table style={{ width: '100%' }}>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Coordinates</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ranLatLonsData.hereNearbyPlaces
-            .map(place => {
-              const searchKey = `${place.name}-${place.address}`;
-              return { ...place, googleResultState: googleGeocodingResults[searchKey] };
-            })
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((place, placeIndex) => (
-              <tr key={`google-here-${placeIndex}`}>
-                <td>{place.googleResultState?.result?.name || 'N/A'}</td>
-                <td>
-                  {place.googleResultState?.result
-                    ? `(${place.googleResultState.result.lat.toFixed(6)}, ${place.googleResultState.result.lng.toFixed(6)})`
-                    : 'N/A'}
-                </td>
-                <td>
-                  {place.googleResultState?.loading ? 'Loading...' :
-                    place.googleResultState?.error ? `Error: ${place.googleResultState.error}` :
-                      'Completed'}
-                </td>
-              </tr>
-            ))}
-          {ranLatLonsData.hereNearbyPlaces.length === 0 && (
-            <tr>
-              <td colSpan={3}>No results found</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </td>
+                  <td style={tableCellStyleWithGap}>
+                    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0' }}>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Coordinates</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ranLatLonsData.hereNearbyPlaces
+                          .map(place => {
+                            const searchKey = `${place.name}-${place.address}`;
+                            return { ...place, googleResultState: googleGeocodingResults[searchKey] };
+                          })
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .map((place, placeIndex) => (
+                            <tr key={`google-here-${placeIndex}`}>
+                              <td style={tableCellStyleWithGap}>{place.googleResultState?.result?.name || 'N/A'}</td>
+                              <td style={tableCellStyleWithGap}>
+                                {place.googleResultState?.result
+                                  ? `(${place.googleResultState.result.lat.toFixed(6)}, ${place.googleResultState.result.lng.toFixed(6)})`
+                                  : 'N/A'}
+                              </td>
+                              <td style={tableCellStyleWithGap}>
+                                {place.googleResultState?.loading ? 'Loading...' :
+                                  place.googleResultState?.error ? `Error: ${place.googleResultState.error}` :
+                                    'Completed'}
+                              </td>
+                            </tr>
+                          ))}
+                        {ranLatLonsData.hereNearbyPlaces.length === 0 && (
+                          <tr>
+                            <td colSpan={3} style={tableCellStyleWithGap}>No results found</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </td>
                 </tr>
               </React.Fragment>
             ))
@@ -348,5 +354,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
     </div>
   );
 };
+
+
 
 export default ResultPage;
