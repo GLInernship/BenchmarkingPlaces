@@ -11,7 +11,7 @@ interface GoogleMap extends google.maps.Map { }
 interface PlaceType {
   label: string;
   googleValue: string;
-  hereValue: string;
+  hereValue: string;    
 }
 
 const placeTypeOptions: PlaceType[] = [
@@ -178,6 +178,7 @@ const GridDivisionsMap: React.FC = () => {
         subregion_id: division.subregion_id
       }))));
       setEnterClicked(true);
+      saveGridDataToBackend(divisionData); // Add this line
     }
   };
   const handleNearbySearchClick = () => {
@@ -420,6 +421,26 @@ const GridDivisionsMap: React.FC = () => {
       event.preventDefault();
     }
   };
+
+  const saveGridDataToBackend = async (divisionData: any[]) => {
+    try {
+      const response = await fetch('http://j5s9dm7w-9000.inc1.devtunnels.ms/api/grid-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ gridData: divisionData }),
+      });
+      if (response.ok) {
+        console.log('Grid data saved successfully');
+      } else {
+        console.error('Failed to save grid data');
+      }
+    } catch (error) {
+      console.error('Error saving grid data:', error);
+    }
+  };
+
 
   return (
     <div className='grid-map'>
