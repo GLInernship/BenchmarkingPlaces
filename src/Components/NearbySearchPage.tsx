@@ -125,16 +125,21 @@ const NearbySearchPage: React.FC = () => {
 
   const searchHereNearbyPlace = async (poi: RanLatLons): Promise<HereNearbyPlace[]> => {
     try {
+      const params: any = {
+        apiKey: '0jGKkBq4qSJKJ5mWdkmRAwuTBhYhAI8D56R5O5IbSPs',
+        at: `${poi.lat},${poi.lng}`,
+        limit: resultLimit,
+        in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
+      };
+
+      if (placeType.hereValue !== "") {
+        params.categories = placeType.hereValue;
+      }
+
       const response = await axios.get(`https://browse.search.hereapi.com/v1/browse`, {
-        params: {
-          apiKey: '0jGKkBq4qSJKJ5mWdkmRAwuTBhYhAI8D56R5O5IbSPs',
-          at: `${poi.lat},${poi.lng}`,
-          limit: resultLimit,
-          categories: placeType.hereValue,
-          in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
-        }
+        params: params
       });
-  
+
       if (response.data.items && response.data.items.length > 0) {
         return response.data.items.map((item: any) => ({
           name: item.title,
@@ -146,11 +151,11 @@ const NearbySearchPage: React.FC = () => {
       return [];
     } catch (error) {
       console.error('Error searching HERE nearby place:', error);
-  
+
       if (axios.isAxiosError(error)) {
         console.error('AxiosError Details:', error.toJSON());
       }
-  
+
       return [];
     }
   };
@@ -173,10 +178,10 @@ const NearbySearchPage: React.FC = () => {
       const results: NearbyPlace[] = [];
       const request: google.maps.places.PlaceSearchRequest = {
         location: new google.maps.LatLng(poi.lat, poi.lng),
-  radius: searchRadius,
-  type: placeType.googleValue as string,
+        radius: searchRadius,
+        type: placeType.googleValue as string,
       };
-  
+
       const fetchResults = async (request: google.maps.places.PlaceSearchRequest) => {
         return new Promise<void>((resolve, reject) => {
           service.nearbySearch(request, (response, status, pagination) => {
@@ -188,7 +193,7 @@ const NearbySearchPage: React.FC = () => {
                 lng: place.geometry?.location?.lng() || 0
               }));
               results.push(...nearbyPlaces);
-  
+
               if (pagination && pagination.hasNextPage && results.length < resultLimit) {
                 pagination.nextPage();
               } else {
@@ -202,9 +207,9 @@ const NearbySearchPage: React.FC = () => {
           });
         });
       };
-  
+
       await fetchResults(request);
-  
+
       return results.slice(0, resultLimit);
     } catch (error) {
       console.error('Error searching nearby place:', error);
@@ -216,7 +221,11 @@ const NearbySearchPage: React.FC = () => {
     try {
       const response = await axios.post('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/save-nearby-places', { 
         groupedRLatLons,
-        placeType
+        placeType: {
+          label: placeType.label,
+          googleValue: placeType.googleValue,
+          hereValue: placeType.hereValue
+        }
       });
       if (response.status === 200) {
         setDataSaved(true);
@@ -251,7 +260,7 @@ const NearbySearchPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-            {groupedRLatLons.map((group) => (
+              {groupedRLatLons.map((group) => (
                 group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => (
                   <React.Fragment key={`${group.subregion_id}-${ranLatLonsIndex}`}>
                     <tr>
