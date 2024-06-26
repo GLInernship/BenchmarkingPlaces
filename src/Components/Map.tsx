@@ -15,6 +15,7 @@ interface PlaceType {
 }
 
 const placeTypeOptions: PlaceType[] = [
+  { label: "None", googleValue: "", hereValue: "" },  
   { label: "Restaurant", googleValue: "restaurant", hereValue: "100-1000-0000" },
   { label: "Cafe", googleValue: "cafe", hereValue: "100-1000-0007" },
   { label: "Park", googleValue: "park", hereValue: "550-5510-0202" },
@@ -24,7 +25,7 @@ const placeTypeOptions: PlaceType[] = [
   { label: "Hospital", googleValue: "hospital", hereValue: "800-8000-0159" },
   { label: "Bank", googleValue: "bank", hereValue: "700-7000-0107" },
   { label: "School", googleValue: "school", hereValue: "800-8200-0174" },
-];
+  ];
 
 const GridDivisionsMap: React.FC = () => {
   const navigate = useNavigate();
