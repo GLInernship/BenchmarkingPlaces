@@ -11,6 +11,7 @@ interface RanLatLons {
 }
 
 interface NearbyPlace {
+  types: any;
   name: string;
   formatted_address: string;
   lat: number;
@@ -18,6 +19,7 @@ interface NearbyPlace {
 }
 
 interface HereNearbyPlace {
+  categoryType: string;
   name: string;
   address: string;
   lat: number;
@@ -145,7 +147,8 @@ const NearbySearchPage: React.FC = () => {
           name: item.title,
           address: item.address.label,
           lat: item.position.lat,
-          lng: item.position.lng
+          lng: item.position.lng,
+          categoryType: item.categories ? item.categories[0].name : 'N/A' // Add this line
         }));
       }
       return [];
@@ -190,7 +193,8 @@ const NearbySearchPage: React.FC = () => {
                 name: place.name || 'Unknown',
                 formatted_address: place.vicinity || 'Unknown address',
                 lat: place.geometry?.location?.lat() || 0,
-                lng: place.geometry?.location?.lng() || 0
+                lng: place.geometry?.location?.lng() || 0,
+                types: place.types // Add this line
               }));
               results.push(...nearbyPlaces);
 
@@ -251,83 +255,87 @@ const NearbySearchPage: React.FC = () => {
             {dataSaved ? 'Data Saved' : 'Save Data'}
           </button>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-            <thead>
-              <tr>
-                <th style={tableHeaderStyle}>Sub-Region</th>
-                <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
-                <th style={tableHeaderStyle}>Google Places API Results</th>
-                <th style={tableHeaderStyle}>HERE API Results</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groupedRLatLons.map((group) => (
-                group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => (
-                  <React.Fragment key={`${group.subregion_id}-${ranLatLonsIndex}`}>
-                    <tr>
-                      {ranLatLonsIndex === 0 && (
-                        <td style={tableCellStyle} rowSpan={group.ranLatLonss.length}>
-                          {group.subregion_id}
-                        </td>
-                      )}
-                      <td style={tableCellStyle}>
-                        ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
-                      </td>
-                      <td style={tableCellStyle}>
-                        <table style={{ width: '100%' }}>
-                          <thead>
-                            <tr>
-                              <th>Name</th>
-                              <th>Address</th>
-                              <th>Coordinates</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {ranLatLonsData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
-                              <tr key={`google-${placeIndex}`}>
-                                <td>{place.name}</td>
-                                <td>{place.formatted_address}</td>
-                                <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
-                              </tr>
-                            ))}
-                            {ranLatLonsData.nearbyPlaces.length === 0 && (
-                              <tr>
-                                <td colSpan={3}>No results found</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </td>
-                      <td style={tableCellStyle}>
-                        <table style={{ width: '100%' }}>
-                          <thead>
-                            <tr>
-                              <th>Name</th>
-                              <th>Address</th>
-                              <th>Coordinates</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {ranLatLonsData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
-                              <tr key={`here-${placeIndex}`}>
-                                <td>{place.name}</td>
-                                <td>{place.address}</td>
-                                <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
-                              </tr>
-                            ))}
-                            {ranLatLonsData.hereNearbyPlaces.length === 0 && (
-                              <tr>
-                                <td colSpan={3}>No results found</td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </td>
+  <thead>
+    <tr>
+      <th style={tableHeaderStyle}>Sub-Region</th>
+      <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
+      <th style={tableHeaderStyle}>Google Places API Results</th>
+      <th style={tableHeaderStyle}>HERE API Results</th>
+    </tr>
+  </thead>
+  <tbody>
+    {groupedRLatLons.map((group) => (
+      group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => (
+        <React.Fragment key={`${group.subregion_id}-${ranLatLonsIndex}`}>
+          <tr>
+            {ranLatLonsIndex === 0 && (
+              <td style={tableCellStyle} rowSpan={group.ranLatLonss.length}>
+                {group.subregion_id}
+              </td>
+            )}
+            <td style={tableCellStyle}>
+              ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
+            </td>
+            <td style={tableCellStyle}>
+              <table style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Address</th>
+                    <th>Coordinates</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ranLatLonsData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
+                    <tr key={`google-${placeIndex}`}>
+                      <td>{place.name}</td>
+                      <td>{place.types ? place.types[0] : 'N/A'}</td>
+                      <td>{place.formatted_address}</td>
+                      <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
                     </tr>
-                  </React.Fragment>
-                ))
-              ))}
-            </tbody>
-          </table>
+                  ))}
+                  {ranLatLonsData.nearbyPlaces.length === 0 && (
+                    <tr>
+                      <td colSpan={4}>No results found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </td>
+            <td style={tableCellStyle}>
+              <table style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Address</th>
+                    <th>Coordinates</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ranLatLonsData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
+                    <tr key={`here-${placeIndex}`}>
+                      <td>{place.name}</td>
+                      <td>{place.categoryType || 'N/A'}</td>
+                      <td>{place.address}</td>
+                      <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                    </tr>
+                  ))}
+                  {ranLatLonsData.hereNearbyPlaces.length === 0 && (
+                    <tr>
+                      <td colSpan={4}>No results found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </React.Fragment>
+      ))
+    ))}
+  </tbody>
+</table>
         </>
       )}
     </div>
