@@ -48,6 +48,7 @@ interface HereAddressSearchResult {
   name: string;
   lat: number;
   lng: number;
+  matchesGoogle: (googleAddress: string, googleName: string) => boolean;
 }
 
 interface HereAddressSearchState {
@@ -89,7 +90,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
               setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
 
               try {
-                const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);
+                const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);/////
                 hereResults[searchKey] = { result, loading: false, error: null };
               } catch (error) {
                 const message = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -124,36 +125,87 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   }, [groupedRLatLons]);
 
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
+    console.log('1. Entering searchHereAddress function');
+    console.log('2. Input parameters:', { name, address, lat, lng });
+  
     const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q';
+    console.log('3. HERE API Key:', HERE_API_KEY);
+  
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
+    console.log('4. Encoded query:', encodedQuery);
     
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
-
-    
+    console.log('5. Request URL:', url);
   
     try {
+      console.log('6. Sending request to HERE API');
       const response = await axios.get(url);
+      console.log('7. Received response from HERE API');
+      console.log('8. Response status:', response.status);
+      console.log('9. Response data:', response.data);
+  
       const result = response.data.items[0];
+      console.log('10. First result item:', result);
+  
       if (!result) {
+        console.log('11. No results found');
         throw new Error('No results found');
       }
-
-      console.log('URL-',url);
-
-      console.log('Response-',response.data.items[0]);
-      
-      return {
+  
+      console.log('12. Processing result data');
+      const street = result.address?.street?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
+      console.log('13. Processed street:', street);
+  
+      const houseNumber = result.address?.houseNumber?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
+      console.log('14. Processed house number:', houseNumber);
+  
+      let title = result.title.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/ß/g, 'ss');
+      console.log('15. Processed title:', title);
+  
+      const titleTokens = title.split(' ').filter((token: string | any[]) => token.length > 0);
+      console.log('16. Title tokens:', titleTokens);
+  
+      const matchesGoogle = (formatted_address: string, googleName: string): boolean => {
+        console.log('17. Checking if HERE result matches Google data');
+        console.log('18. Google formatted address:', formatted_address);
+        console.log('19. Google name:', googleName);
+  
+        const lowerGoogleAddress = formatted_address.toLowerCase();
+        const lowerGoogleName = googleName.toLowerCase();
+  
+        const addressMatches = street && houseNumber && 
+          lowerGoogleAddress.includes(street) && 
+          lowerGoogleAddress.includes(houseNumber);
+        console.log('20. Address matches:', addressMatches);
+  
+        const nameMatches = titleTokens.some((token: string) => lowerGoogleName.includes(token));
+        console.log('21. Name matches:', nameMatches);
+  
+        const finalMatch = addressMatches && nameMatches;
+        console.log('22. Final match result:', finalMatch);
+  
+        return finalMatch;
+      };
+  
+      const result_obj = {
         name: result.title,
         lat: result.position.lat,
-        lng: result.position.lng
+        lng: result.position.lng,
+        matchesGoogle: matchesGoogle
       };
+      console.log('23. Returning result object:', result_obj);
+  
+      return result_obj;
     } catch (error) {
+      console.log('24. Error in searchHereAddress function');
       if (axios.isAxiosError(error) && error.response) {
-        console.error('Error fetching HERE place:', error.response.status, error.response.data);
+        console.log('25. Axios error response:', error.response.status, error.response.data);
       } else {
-        console.error('Error fetching HERE place:', error);
+        console.log('26. Non-Axios error:', error);
       }
       throw error;
+    } finally {
+      console.log('27. Exiting searchHereAddress function');
     }
   };
 
@@ -265,45 +317,52 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                   </table>
                 </td>
                 <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
-                        <th style={innerTableHeaderStyle}>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ranLatLonsData.nearbyPlaces.length > 0 ? (
-                        ranLatLonsData.nearbyPlaces
-                          .map(place => {
-                            const searchKey = `${place.name}-${place.formatted_address}`;
-                            return { ...place, hereResultState: hereAddressResults[searchKey] };
-                          })
-                          .sort((a, b) => a.name.localeCompare(b.name))
-                          .map((place, placeIndex) => (
-                            <tr key={`here-google-${placeIndex}`}>
-                              <td style={innerTableCellStyle}>{place.hereResultState?.result?.name || 'N/A'}</td>
-                              <td style={innerTableCellStyle}>
-                                {place.hereResultState?.result
-                                  ? `(${place.hereResultState.result.lat.toFixed(6)}, ${place.hereResultState.result.lng.toFixed(6)})`
-                                  : 'N/A'}
-                              </td>
-                              <td style={innerTableCellStyle}>
-                                {place.hereResultState?.loading ? 'Loading...' :
-                                  place.hereResultState?.error ? `Error: ${place.hereResultState.error}` :
-                                    'Completed'}
-                              </td>
-                            </tr>
-                          ))
-                      ) : (
-                        <tr>
-                          <td colSpan={3} style={innerTableCellStyle}>No results found</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </td>
+  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <thead>
+      <tr>
+        <th style={innerTableHeaderStyle}>Name</th>
+        <th style={innerTableHeaderStyle}>Coordinates</th>
+        <th style={innerTableHeaderStyle}>Status</th>
+        <th style={innerTableHeaderStyle}>Matches Google</th>
+      </tr>
+    </thead>
+    <tbody>
+      {ranLatLonsData.nearbyPlaces.length > 0 ? (
+        ranLatLonsData.nearbyPlaces
+          .map(place => {
+            const searchKey = `${place.name}-${place.formatted_address}`;
+            return { ...place, hereResultState: hereAddressResults[searchKey] };
+          })
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map((place, placeIndex) => (
+            <tr key={`here-google-${placeIndex}`}>
+              <td style={innerTableCellStyle}>{place.hereResultState?.result?.name || 'N/A'}</td>
+              <td style={innerTableCellStyle}>
+                {place.hereResultState?.result
+                  ? `(${place.hereResultState.result.lat.toFixed(6)}, ${place.hereResultState.result.lng.toFixed(6)})`
+                  : 'N/A'}
+              </td>
+              <td style={innerTableCellStyle}>
+                {place.hereResultState?.loading ? 'Loading...' :
+                  place.hereResultState?.error ? `Error: ${place.hereResultState.error}` :
+                    'Completed'}
+              </td>
+              <td style={innerTableCellStyle}>
+                {place.hereResultState?.result?.matchesGoogle &&
+                 place.hereResultState.result.matchesGoogle(place.formatted_address, place.name)
+                  ? 'Data matches with Google'
+                  : 'Data doesn\'t match with Google'}
+              </td>
+            </tr>
+          ))
+      ) : (
+        <tr>
+          <td colSpan={4} style={innerTableCellStyle}>No results found</td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+</td>
                 <td style={tableCellStyle}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
