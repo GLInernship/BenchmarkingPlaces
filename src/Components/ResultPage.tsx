@@ -82,143 +82,109 @@ const ResultPage: React.FC<ResultPageProps> = () => {
       const hereResults: { [key: string]: HereAddressSearchState } = {};
       const googleResults: { [key: string]: GoogleGeocodingState } = {};
 
-      for (const group of groupedRLatLons) {
-        for (const ranLatLonsData of group.ranLatLonss) {
-          // HERE API calls for Google Places results
-          for (const place of ranLatLonsData.nearbyPlaces) {
-            const searchKey = `${place.name}-${place.formatted_address}`;
-            if (place.formatted_address && !hereResults[searchKey]) {
-              hereResults[searchKey] = { result: null, loading: true, error: null };
-              setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
-
-              try {
-                const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);/////
-                hereResults[searchKey] = { result, loading: false, error: null };
-              } catch (error) {
-                const message = error instanceof Error ? error.message : 'An unknown error occurred';
-                hereResults[searchKey] = { result: null, loading: false, error: message };
-              }
-              setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
-            }
-          }
-
-          // Google Geocoding API calls for HERE results
-          for (const place of ranLatLonsData.hereNearbyPlaces) {
-            const searchKey = `${place.name}-${place.address}`;
-            if (place.address && !googleResults[searchKey]) {
-              googleResults[searchKey] = { result: null, loading: true, error: null };
-              setGoogleGeocodingResults(prevState => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
-
-              try {
-                const result = await searchGooglePlace(place.name, place.address, place.lat, place.lng);
-                googleResults[searchKey] = { result, loading: false, error: null };
-              } catch (error) {
-                const message = error instanceof Error ? error.message : 'An unknown error occurred';
-                googleResults[searchKey] = { result: null, loading: false, error: message };
-              }
-              setGoogleGeocodingResults(prevState => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
-            }
-          }
-        }
-      }
+      await Promise.all(groupedRLatLons.map(async (group) => {
+        await Promise.all(group.ranLatLonss.map(async (ranLatLonsData) => {
+          await fetchHereResults(hereResults, ranLatLonsData.nearbyPlaces);
+          await fetchGoogleResults(googleResults, ranLatLonsData.hereNearbyPlaces);
+        }));
+      }));
     };
 
     fetchResults();
   }, [groupedRLatLons]);
 
+  const fetchHereResults = async (hereResults: { [key: string]: HereAddressSearchState }, nearbyPlaces: NearbyPlace[]) => {
+    for (const place of nearbyPlaces) {
+      const searchKey = `${place.name}-${place.formatted_address}`;
+      if (place.formatted_address && !hereResults[searchKey]) {
+        hereResults[searchKey] = { result: null, loading: true, error: null };
+        setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
+
+        try {
+          const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);
+          hereResults[searchKey] = { result, loading: false, error: null };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'An unknown error occurred';
+          hereResults[searchKey] = { result: null, loading: false, error: message };
+        }
+        setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
+      }
+    }
+  };
+
+  const fetchGoogleResults = async (googleResults: { [key: string]: GoogleGeocodingState }, hereNearbyPlaces: HereNearbyPlace[]) => {
+    await Promise.all(hereNearbyPlaces.map(async (place) => {
+      const searchKey = `${place.name}-${place.address}`;
+      if (place.address && !googleResults[searchKey]) {
+        googleResults[searchKey] = { result: null, loading: true, error: null };
+        setGoogleGeocodingResults((prevState) => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
+    
+        try {
+          const result = await searchGooglePlace(place.name, place.address, place.lat, place.lng);
+          googleResults[searchKey] = { result, loading: false, error: null };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'An unknown error occurred';
+          googleResults[searchKey] = { result: null, loading: false, error: message };
+        }
+        setGoogleGeocodingResults((prevState) => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
+      }
+    }));
+  };
+
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
-
-
     const HERE_API_KEY = '0jGKkBq4qSJKJ5mWdkmRAwuTBhYhAI8D56R5O5IbSPs';
-
-
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
-
-
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
 
-
     try {
-
       const response = await axios.get(url);
-
-
-
       const result = response.data.items[0];
 
-
       if (!result) {
-
         throw new Error('No results found');
       }
 
-      console.log('12. Processing result data');
       const street = result.address?.street?.toLowerCase();
-      console.log('13. Processed street:', street);
-
       const houseNumber = result.address?.houseNumber?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
-      console.log('3. Processed house number:', houseNumber);
-
       let title = result.title.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/ß/g, 'ss');
-      console.log('4. Processed title:', title);
-
       const titleTokens = title.split(' ').filter((token: string | any[]) => token.length > 0);
-      console.log('5. Title tokens:', titleTokens);
 
       const matchesGoogle = (formatted_address: string, name: string): boolean => {
-        console.log('6. Checking if HERE result matches Google data');
-        console.log('7. Google formatted address:', formatted_address);
-        console.log('8. Google name:', name);
-
         const lowerGoogleAddress = formatted_address.toLowerCase();
-        console.log('9. Lower Google address:', lowerGoogleAddress);
         const lowerGoogleName = name.toLowerCase();
-        console.log('9a. Lower Google name:', lowerGoogleName);
-
         const addressMatches = street && houseNumber && lowerGoogleAddress.includes(street) && lowerGoogleAddress.includes(houseNumber);
-        console.log('9b. Address matches:', addressMatches);
-
         const nameMatches = titleTokens.every((token: string) => lowerGoogleName.includes(token));
-        console.log('10. Name matches:', nameMatches);
-
         const finalMatch = addressMatches && nameMatches;
-        console.log('11. Final match result:', finalMatch);
-
         return finalMatch;
       };
 
-      const result_obj = {
+      const resultObj = {
         name: result.title,
         lat: result.position.lat,
         lng: result.position.lng,
         matchesGoogle: matchesGoogle
       };
 
-
-      return result_obj;
+      return resultObj;
     } catch (error) {
-      console.log('24. Error in searchHereAddress function');
-      if (axios.isAxiosError(error) && error.response) {
-        console.log('25. Axios error response:', error.response.status, error.response.data);
-      } else {
-        console.log('26. Non-Axios error:', error);
-      }
+      console.log('Error in searchHereAddress function:', error);
       throw error;
-    } finally {
-      console.log('27. Exiting searchHereAddress function');
     }
   };
 
   const searchGooglePlace = async (name: string, address: string, lat: number, lng: number): Promise<GooglePlaceResult> => {
-    const GOOGLE_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual Google API key
+    const GOOGLE_API_KEY = 'YOUR_GOOGLE_API_KEY'; // Replace with your actual Google API key
     const encodedQuery = encodeURIComponent(`${address}`);
     const url = `/maps/api/place/textsearch/json?query=${encodedQuery}&location=${lat},${lng}&key=${GOOGLE_API_KEY}`;
+
     try {
       const response = await axios.get(url);
       const result = response.data.results[0];
+
       if (!result) {
         throw new Error('No results found');
       }
+
       return {
         name: result.name,
         lat: result.geometry.location.lat,
@@ -228,37 +194,6 @@ const ResultPage: React.FC<ResultPageProps> = () => {
       console.error('Error fetching Google place:', error);
       throw error;
     }
-  };
-
-  const tableHeaderStyle: React.CSSProperties = {
-    border: '1px solid black',
-    padding: '8px',
-    backgroundColor: '#f2f2f2',
-    fontWeight: 'bold',
-  };
-
-  const tableCellStyle: React.CSSProperties = {
-    border: '2px solid black',
-    padding: '8px',
-  };
-
-  const tableCellStyleWithGap = { // Assuming tableCellStyle is an existing style object you want to keep
-    ...tableCellStyle,
-    borderBottom: '20px solid transparent',
-    paddingBottom: '10px', // Adjust the '10px' as needed to control the gap size
-  };
-
-  const innerTableHeaderStyle = {
-    ...tableHeaderStyle,
-    backgroundColor: '#f0f0f0',
-    padding: '8px',
-    borderBottom: '1px solid #ddd',
-  };
-
-  const innerTableCellStyle = {
-    ...tableCellStyle,
-    padding: '8px',
-    borderBottom: '1px solid #ddd',
   };
 
   const saveDataToMongoDB = async () => {
@@ -301,7 +236,6 @@ const ResultPage: React.FC<ResultPageProps> = () => {
     }
   };
 
-
   return (
     <div>
       <h1>Search Results</h1>
@@ -325,12 +259,12 @@ const ResultPage: React.FC<ResultPageProps> = () => {
       <table style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr>
-            <th style={tableHeaderStyle}>Sub-Region</th>
-            <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
-            <th style={tableHeaderStyle}>Google Places API Results</th>
-            <th style={tableHeaderStyle}>HERE API Results Based on Google Results(Based on Name, Address and Coords)</th>
-            <th style={tableHeaderStyle}>HERE API Results</th>
-            <th style={tableHeaderStyle}>Google API Results Based on HERE Results(Based on Address and Coords)</th>
+            <th>Sub-Region</th>
+            <th>LAT-LNG Coordinates</th>
+            <th>Google Places API Results</th>
+            <th>HERE API Results Based on Google Results</th>
+            <th>HERE API Results</th>
+            <th>Google API Results Based on HERE Results</th>
           </tr>
         </thead>
         <tbody>
@@ -338,49 +272,49 @@ const ResultPage: React.FC<ResultPageProps> = () => {
             group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => (
               <tr key={`${group.subregion_id}-${ranLatLonsIndex}`}>
                 {ranLatLonsIndex === 0 && (
-                  <td style={tableCellStyle} rowSpan={group.ranLatLonss.length}>
+                  <td rowSpan={group.ranLatLonss.length}>
                     {group.subregion_id}
                   </td>
                 )}
-                <td style={tableCellStyle}>
+                <td>
                   ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
                 </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <td>
+                  <table>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Type</th>
-                        <th style={innerTableHeaderStyle}>Address</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Address</th>
+                        <th>Coordinates</th>
                       </tr>
                     </thead>
                     <tbody>
                       {ranLatLonsData.nearbyPlaces.length > 0 ? (
                         ranLatLonsData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                           <tr key={`google-${placeIndex}`}>
-                            <td style={innerTableCellStyle}>{place.name}</td>
-                            <td style={innerTableCellStyle}>{place.types ? place.types[0] : 'N/A'}</td>
-                            <td style={innerTableCellStyle}>{place.formatted_address}</td>
-                            <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                            <td>{place.name}</td>
+                            <td>{place.types ? place.types[0] : 'N/A'}</td>
+                            <td>{place.formatted_address}</td>
+                            <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          <td colSpan={4}>No API key found or error in API or No results found</td>
                         </tr>
                       )}
                     </tbody>
                   </table>
                 </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <td>
+                  <table>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
-                        <th style={innerTableHeaderStyle}>Status</th>
-                        <th style={innerTableHeaderStyle}>Matches Google</th>
+                        <th>Name</th>
+                        <th>Coordinates</th>
+                        <th>Status</th>
+                        <th>Matches Google</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -393,18 +327,18 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                           .sort((a, b) => a.name.localeCompare(b.name))
                           .map((place, placeIndex) => (
                             <tr key={`here-google-${placeIndex}`}>
-                              <td style={innerTableCellStyle}>{place.hereResultState?.result?.name || 'N/A'}</td>
-                              <td style={innerTableCellStyle}>
+                              <td>{place.hereResultState?.result?.name || 'N/A'}</td>
+                              <td>
                                 {place.hereResultState?.result
                                   ? `(${place.hereResultState.result.lat.toFixed(6)}, ${place.hereResultState.result.lng.toFixed(6)})`
                                   : 'N/A'}
                               </td>
-                              <td style={innerTableCellStyle}>
+                              <td>
                                 {place.hereResultState?.loading ? 'Loading...' :
                                   place.hereResultState?.error ? `Error: ${place.hereResultState.error}` :
                                     'Completed'}
                               </td>
-                              <td style={innerTableCellStyle}>
+                              <td>
                                 {place.hereResultState?.result?.matchesGoogle &&
                                   place.hereResultState.result.matchesGoogle(place.formatted_address, place.name)
                                   ? 'Data matches with Google'
@@ -414,47 +348,47 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                           ))
                       ) : (
                         <tr>
-                          <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          <td colSpan={4}>No API key found or error in API or No results found</td>
                         </tr>
                       )}
                     </tbody>
                   </table>
                 </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <td>
+                  <table>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Type</th>
-                        <th style={innerTableHeaderStyle}>Address</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Address</th>
+                        <th>Coordinates</th>
                       </tr>
                     </thead>
                     <tbody>
                       {ranLatLonsData.hereNearbyPlaces.length > 0 ? (
                         ranLatLonsData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
                           <tr key={`here-${placeIndex}`}>
-                            <td style={innerTableCellStyle}>{place.name}</td>
-                            <td style={innerTableCellStyle}>{place.categoryType || 'N/A'}</td>
-                            <td style={innerTableCellStyle}>{place.address}</td>
-                            <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                            <td>{place.name}</td>
+                            <td>{place.categoryType || 'N/A'}</td>
+                            <td>{place.address}</td>
+                            <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          <td colSpan={4}>No API key found or error in API or No results found</td>
                         </tr>
                       )}
                     </tbody>
                   </table>
                 </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <td>
+                  <table>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
-                        <th style={innerTableHeaderStyle}>Status</th>
+                        <th>Name</th>
+                        <th>Coordinates</th>
+                        <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -467,13 +401,13 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                           .sort((a, b) => a.name.localeCompare(b.name))
                           .map((place, placeIndex) => (
                             <tr key={`google-here-${placeIndex}`}>
-                              <td style={innerTableCellStyle}>{place.googleResultState?.result?.name || 'N/A'}</td>
-                              <td style={innerTableCellStyle}>
+                              <td>{place.googleResultState?.result?.name || 'N/A'}</td>
+                              <td>
                                 {place.googleResultState?.result
                                   ? `(${place.googleResultState.result.lat.toFixed(6)}, ${place.googleResultState.result.lng.toFixed(6)})`
                                   : 'N/A'}
                               </td>
-                              <td style={innerTableCellStyle}>
+                              <td>
                                 {place.googleResultState?.loading ? 'Loading...' :
                                   place.googleResultState?.error ? `Error: ${place.googleResultState.error}` :
                                     'Completed'}
@@ -482,7 +416,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                           ))
                       ) : (
                         <tr>
-                          <td colSpan={3} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          <td colSpan={3}>No API key found or error in API or No results found</td>
                         </tr>
                       )}
                     </tbody>
@@ -496,7 +430,5 @@ const ResultPage: React.FC<ResultPageProps> = () => {
     </div>
   );
 };
-
-
 
 export default ResultPage;
