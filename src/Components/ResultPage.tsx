@@ -308,7 +308,7 @@ console.log('13. Processed street:', street);
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} style={innerTableCellStyle}>No results found</td>
+                          <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
                         </tr>
                       )}
                     </tbody>
@@ -355,7 +355,7 @@ console.log('13. Processed street:', street);
                           ))
                       ) : (
                         <tr>
-                          <td colSpan={4} style={innerTableCellStyle}>No results found</td>
+                          <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
                         </tr>
                       )}
                     </tbody>
@@ -383,7 +383,7 @@ console.log('13. Processed street:', street);
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} style={innerTableCellStyle}>No results found</td>
+                          <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
                         </tr>
                       )}
                     </tbody>
@@ -423,7 +423,7 @@ console.log('13. Processed street:', street);
                           ))
                       ) : (
                         <tr>
-                          <td colSpan={3} style={innerTableCellStyle}>No results found</td>
+                          <td colSpan={3} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
                         </tr>
                       )}
                     </tbody>
