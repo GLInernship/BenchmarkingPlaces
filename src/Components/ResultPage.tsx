@@ -151,8 +151,8 @@ const ResultPage: React.FC<ResultPageProps> = () => {
       }
 
       console.log('12. Processing result data');
-const street = result.address?.street?.toLowerCase();
-console.log('13. Processed street:', street);
+      const street = result.address?.street?.toLowerCase();
+      console.log('13. Processed street:', street);
 
       const houseNumber = result.address?.houseNumber?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
       console.log('3. Processed house number:', houseNumber);
@@ -173,7 +173,7 @@ console.log('13. Processed street:', street);
         const lowerGoogleName = name.toLowerCase();
         console.log('9a. Lower Google name:', lowerGoogleName);
 
-        const addressMatches = street && houseNumber && lowerGoogleAddress.includes(street) && lowerGoogleAddress.includes(houseNumber) ;
+        const addressMatches = street && houseNumber && lowerGoogleAddress.includes(street) && lowerGoogleAddress.includes(houseNumber);
         console.log('9b. Address matches:', addressMatches);
 
         const nameMatches = titleTokens.every((token: string) => lowerGoogleName.includes(token));
