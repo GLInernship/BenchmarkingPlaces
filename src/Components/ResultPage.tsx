@@ -74,6 +74,8 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   const { groupedRLatLons, placeType } = location.state as { groupedRLatLons: GroupedRLatLon[], placeType: PlaceType };
   const [hereAddressResults, setHereAddressResults] = useState<{ [key: string]: HereAddressSearchState }>({});
   const [googleGeocodingResults, setGoogleGeocodingResults] = useState<{ [key: string]: GoogleGeocodingState }>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -259,10 +261,67 @@ const ResultPage: React.FC<ResultPageProps> = () => {
     borderBottom: '1px solid #ddd',
   };
 
+  const saveDataToMongoDB = async () => {
+    if (isSaved) return; // Prevent multiple saves
+
+    setIsSaving(true);
+    try {
+      const dataToSave = groupedRLatLons.flatMap(group =>
+        group.ranLatLonss.map(ranLatLonsData => ({
+          subRegion: group.subregion_id,
+          latLng: {
+            lat: ranLatLonsData.ranLatLons.lat,
+            lng: ranLatLonsData.ranLatLons.lng
+          },
+          googlePlaces: ranLatLonsData.nearbyPlaces,
+          hereBasedOnGoogle: ranLatLonsData.nearbyPlaces.map(place => {
+            const searchKey = `${place.name}-${place.formatted_address}`;
+            return hereAddressResults[searchKey]?.result || null;
+          }),
+          herePlaces: ranLatLonsData.hereNearbyPlaces,
+          googleBasedOnHere: ranLatLonsData.hereNearbyPlaces.map(place => {
+            const searchKey = `${place.name}-${place.address}`;
+            return googleGeocodingResults[searchKey]?.result || null;
+          })
+        }))
+      );
+
+      const response = await axios.post('/api/save-results', { results: dataToSave });
+      if (response.data.success) {
+        alert('Data saved successfully!');
+        setIsSaved(true); // Mark as saved
+      } else {
+        throw new Error('Failed to save data');
+      }
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert('Failed to save data. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
   return (
     <div>
       <h1>Search Results</h1>
       <p>Place Type: {placeType.label}</p>
+      <button
+        onClick={saveDataToMongoDB}
+        disabled={isSaving || isSaved}
+        style={{
+          marginTop: '20px',
+          padding: '10px 20px',
+          fontSize: '16px',
+          backgroundColor: isSaved ? '#cccccc' : '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: isSaving || isSaved ? 'not-allowed' : 'pointer'
+        }}
+      >
+        {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save Results to MongoDB'}
+      </button>
       <table style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr>
