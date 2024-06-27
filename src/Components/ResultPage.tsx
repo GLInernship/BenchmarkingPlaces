@@ -89,7 +89,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
               setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
 
               try {
-                const result = await searchHereAddress(place.name, place.formatted_address);
+                const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);
                 hereResults[searchKey] = { result, loading: false, error: null };
               } catch (error) {
                 const message = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -107,7 +107,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
               setGoogleGeocodingResults(prevState => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
 
               try {
-                const result = await searchGooglePlace(place.name, place.address);
+                const result = await searchGooglePlace(place.name, place.address, place.lat, place.lng);
                 googleResults[searchKey] = { result, loading: false, error: null };
               } catch (error) {
                 const message = error instanceof Error ? error.message : 'An unknown error occurred';
@@ -123,12 +123,12 @@ const ResultPage: React.FC<ResultPageProps> = () => {
     fetchResults();
   }, [groupedRLatLons]);
 
-  const searchHereAddress = async (name: string, address: string): Promise<HereAddressSearchResult> => {
-    const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q'; // Replace with your actual HERE API key
-    const encodedAddress = encodeURIComponent(address);
-    const encodedName = encodeURIComponent(name);
-    const url = `https://geocode.search.hereapi.com/v1/geocode?q=${encodedName},${encodedAddress}&apiKey=${HERE_API_KEY}`;
-
+  const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
+    const HERE_API_KEY = 'PH2VSIzVbqZj7eUACGByNuWl8jjHSzaV8FnM2qPEqMQ';
+    const encodedQuery = encodeURIComponent(`${name}, ${address}`);
+    
+    const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
+  
     try {
       const response = await axios.get(url);
       const result = response.data.items[0];
@@ -141,15 +141,19 @@ const ResultPage: React.FC<ResultPageProps> = () => {
         lng: result.position.lng
       };
     } catch (error) {
-      console.error('Error fetching HERE address:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        console.error('Error fetching HERE place:', error.response.status, error.response.data);
+      } else {
+        console.error('Error fetching HERE place:', error);
+      }
       throw error;
     }
   };
 
-  const searchGooglePlace = async (name: string, address: string): Promise<GooglePlaceResult> => {
+  const searchGooglePlace = async (name: string, address: string, lat: number, lng: number): Promise<GooglePlaceResult> => {
     const GOOGLE_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual Google API key
     const encodedQuery = encodeURIComponent(`${address}`);
-    const url = `/maps/api/place/textsearch/json?query=${encodedQuery}&key=${GOOGLE_API_KEY}`;
+    const url = `/maps/api/place/textsearch/json?query=${encodedQuery}&location=${lat},${lng}&key=${GOOGLE_API_KEY}`;
     try {
       const response = await axios.get(url);
       const result = response.data.results[0];
@@ -157,7 +161,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
         throw new Error('No results found');
       }
       return {
-        name: result.name, // This will be the specific place name
+        name: result.name,
         lat: result.geometry.location.lat,
         lng: result.geometry.location.lng
       };
