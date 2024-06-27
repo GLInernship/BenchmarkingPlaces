@@ -11,11 +11,11 @@ interface GoogleMap extends google.maps.Map { }
 interface PlaceType {
   label: string;
   googleValue: string;
-  hereValue: string;    
+  hereValue: string;
 }
 
 const placeTypeOptions: PlaceType[] = [
-  { label: "None", googleValue: "", hereValue: "" },  
+  { label: "None", googleValue: "", hereValue: "" },
   { label: "Restaurant", googleValue: "restaurant", hereValue: "100-1000-0000" },
   { label: "Cafe", googleValue: "cafe", hereValue: "100-1000-0007" },
   { label: "Park", googleValue: "park", hereValue: "550-5510-0202" },
@@ -25,7 +25,7 @@ const placeTypeOptions: PlaceType[] = [
   { label: "Hospital", googleValue: "hospital", hereValue: "800-8000-0159" },
   { label: "Bank", googleValue: "bank", hereValue: "700-7000-0107" },
   { label: "School", googleValue: "school", hereValue: "800-8200-0174" },
-  ];
+];
 
 const GridDivisionsMap: React.FC = () => {
   const navigate = useNavigate();
@@ -47,6 +47,7 @@ const GridDivisionsMap: React.FC = () => {
   const [isPlaceSelected, setIsPlaceSelected] = useState<boolean>(false);
   const [searchRadius, setSearchRadius] = useState<number>(1000);
   const [resultLimit, setResultLimit] = useState<number>(20);
+  const [placeName, setPlaceName] = useState<string>('');
 
   const [placeType, setPlaceType] = useState<PlaceType>(placeTypeOptions[0]);
 
@@ -72,19 +73,19 @@ const GridDivisionsMap: React.FC = () => {
 
   useEffect(() => {
     if (!mapRef.current || map !== undefined) return;
-  
+
     const onLoad = () => {
       const googleMap = new window.google.maps.Map(mapRef.current!, {
         center: { lat: 40.712776, lng: -74.005974 },
         zoom: 12,
       });
-  
+
       setMap(googleMap);
-  
+
       const autocompleteInstance = new window.google.maps.places.Autocomplete(searchInputRef.current!);
       autocompleteInstance.bindTo('bounds', googleMap);
       setAutocomplete(autocompleteInstance);
-  
+
       autocompleteInstance.addListener('place_changed', () => {
         const place = autocompleteInstance.getPlace();
         if (place.geometry) {
@@ -92,16 +93,18 @@ const GridDivisionsMap: React.FC = () => {
           googleMap.setZoom(12);
           setSelectedPlace(place);
           setIsPlaceSelected(true);  // Add this line
-  
+          setPlaceName(place.name || '');
+
           drawPlaceOutline(place, googleMap);
           displayBoundingBoxCoords(place);
         } else {
           console.error('Place selected does not have geometry');
           setIsPlaceSelected(false);  // Add this line
+          setPlaceName('');
         }
       });
     };
-  
+
     if (!window.google) {
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
@@ -356,8 +359,8 @@ const GridDivisionsMap: React.FC = () => {
     return randomPOIs;
   };
 
-    const displayRandomPOIs = (ranLatLonss: { name: string, lat: number, lng: number }[]) => {
-      ranLatLonss.forEach(ranLatLons => {
+  const displayRandomPOIs = (ranLatLonss: { name: string, lat: number, lng: number }[]) => {
+    ranLatLonss.forEach(ranLatLons => {
 
       const icon = {
         url: 'https://www.pngall.com/wp-content/uploads/13/Red-Circle.png',
@@ -429,7 +432,10 @@ const GridDivisionsMap: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ gridData: divisionData }),
+        body: JSON.stringify({
+          placeName: placeName,
+          gridData: divisionData
+        }),
       });
       if (response.ok) {
         console.log('Grid data saved successfully');
@@ -516,7 +522,7 @@ const GridDivisionsMap: React.FC = () => {
           required
           min="1"
         />
-        
+
         <label>Result Limit (1-60):</label>
         <input
           type="number"
@@ -528,7 +534,7 @@ const GridDivisionsMap: React.FC = () => {
           min="1"
           max="60"
         />
-       <button type="submit" disabled={!isPlaceSelected}>Enter</button>
+        <button type="submit" disabled={!isPlaceSelected}>Enter</button>
         {enterClicked && <button type="button" onClick={handleNearbySearchClick}>Nearby Search</button>}
         <button type="button" onClick={handlePageRefresh}>Reset</button>
       </form>

@@ -124,7 +124,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   }, [groupedRLatLons]);
 
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
-    const HERE_API_KEY = 'PH2VSIzVbqZj7eUACGByNuWl8jjHSzaV8FnM2qPEqMQ';
+    const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q';
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
     
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
