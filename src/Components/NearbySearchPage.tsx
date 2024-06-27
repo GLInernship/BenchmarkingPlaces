@@ -135,7 +135,7 @@ const NearbySearchPage: React.FC = () => {
   const searchHereNearbyPlace = async (poi: RanLatLons): Promise<HereNearbyPlace[]> => {
     try {
       const params: any = {
-        apiKey: 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q',
+        apiKey: '',
         at: `${poi.lat},${poi.lng}`,
         limit: resultLimit,
         in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
@@ -311,7 +311,7 @@ const NearbySearchPage: React.FC = () => {
                   ))}
                   {ranLatLonsData.nearbyPlaces.length === 0 && (
                     <tr>
-                      <td colSpan={4}>No results found</td>
+                      <td colSpan={4}>No API key found or error in API or No results found</td>
                     </tr>
                   )}
                 </tbody>
@@ -338,7 +338,7 @@ const NearbySearchPage: React.FC = () => {
                   ))}
                   {ranLatLonsData.hereNearbyPlaces.length === 0 && (
                     <tr>
-                      <td colSpan={4}>No results found</td>
+                      <td colSpan={4}>No API key found or error in API or No results found</td>
                     </tr>
                   )}
                 </tbody>
