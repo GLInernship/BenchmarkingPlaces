@@ -80,107 +80,118 @@ const ResultPage: React.FC<ResultPageProps> = () => {
       const hereResults: { [key: string]: HereAddressSearchState } = {};
       const googleResults: { [key: string]: GoogleGeocodingState } = {};
 
-      for (const group of groupedRLatLons) {
-        for (const ranLatLonsData of group.ranLatLonss) {
-          // HERE API calls for Google Places results
-          for (const place of ranLatLonsData.nearbyPlaces) {
-            const searchKey = `${place.name}-${place.formatted_address}`;
-            if (place.formatted_address && !hereResults[searchKey]) {
-              hereResults[searchKey] = { result: null, loading: true, error: null };
-              setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
+      await Promise.all(
+        groupedRLatLons.flatMap((group) =>
+          group.ranLatLonss.flatMap(async (ranLatLonsData) => {
+            const hereResults: { [key: string]: HereAddressSearchState } = {};
+            const googleResults: { [key: string]: GoogleGeocodingState } = {};
 
-              try {
-                const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);/////
-                hereResults[searchKey] = { result, loading: false, error: null };
-              } catch (error) {
-                const message = error instanceof Error ? error.message : 'An unknown error occurred';
-                hereResults[searchKey] = { result: null, loading: false, error: message };
-              }
-              setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
-            }
-          }
+            // HERE API calls for Google Places results
+            await Promise.all(
+              ranLatLonsData.nearbyPlaces.map(async (place) => {
+                const searchKey = `${place.name}-${place.formatted_address}`;
+                if (place.formatted_address && !hereResults[searchKey]) {
+                  hereResults[searchKey] = { result: null, loading: true, error: null };
+                  setHereAddressResults((prevState) => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
 
-          // Google Geocoding API calls for HERE results
-          for (const place of ranLatLonsData.hereNearbyPlaces) {
-            const searchKey = `${place.name}-${place.address}`;
-            if (place.address && !googleResults[searchKey]) {
-              googleResults[searchKey] = { result: null, loading: true, error: null };
-              setGoogleGeocodingResults(prevState => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
+                  try {
+                    const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);
+                    hereResults[searchKey] = { result, loading: false, error: null };
+                  } catch (error) {
+                    const message = error instanceof Error ? error.message : 'An unknown error occurred';
+                    hereResults[searchKey] = { result: null, loading: false, error: message };
+                  }
+                  setHereAddressResults((prevState) => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
+                }
+              })
+            );
 
-              try {
-                const result = await searchGooglePlace(place.name, place.address, place.lat, place.lng);
-                googleResults[searchKey] = { result, loading: false, error: null };
-              } catch (error) {
-                const message = error instanceof Error ? error.message : 'An unknown error occurred';
-                googleResults[searchKey] = { result: null, loading: false, error: message };
-              }
-              setGoogleGeocodingResults(prevState => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
-            }
-          }
-        }
-      }
+            // Google Geocoding API calls for HERE results
+            await Promise.all(
+              ranLatLonsData.hereNearbyPlaces.map(async (place) => {
+                const searchKey = `${place.name}-${place.address}`;
+                if (place.address && !googleResults[searchKey]) {
+                  googleResults[searchKey] = { result: null, loading: true, error: null };
+                  setGoogleGeocodingResults((prevState) => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
+
+                  try {
+                    const result = await searchGooglePlace(place.name, place.address, place.lat, place.lng);
+                    googleResults[searchKey] = { result, loading: false, error: null };
+                  } catch (error) {
+                    const message = error instanceof Error ? error.message : 'An unknown error occurred';
+                    googleResults[searchKey] = { result: null, loading: false, error: message };
+                  }
+                  setGoogleGeocodingResults((prevState) => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
+                }
+              })
+            );
+          })
+        )
+      );
     };
 
     fetchResults();
   }, [groupedRLatLons]);
 
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
+    console.log('1. Entering searchHereAddress function');
+    console.log('2. Input parameters:', { name, address, lat, lng });
 
-
-    const HERE_API_KEY = '0jGKkBq4qSJKJ5mWdkmRAwuTBhYhAI8D56R5O5IbSPs';
-
+    const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q';
+    console.log('3. HERE API Key:', HERE_API_KEY);
 
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
-
+    console.log('4. Encoded query:', encodedQuery);
 
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
-
+    console.log('5. Request URL:', url);
 
     try {
-
+      console.log('6. Sending request to HERE API');
       const response = await axios.get(url);
-
-
+      console.log('7. Received response from HERE API');
+      console.log('8. Response status:', response.status);
+      console.log('9. Response data:', response.data);
 
       const result = response.data.items[0];
-
+      console.log('10. First result item:', result);
 
       if (!result) {
-
+        console.log('11. No results found');
         throw new Error('No results found');
       }
 
       console.log('12. Processing result data');
-      const street = result.address?.street?.toLowerCase();
+      const street = result.address?.street?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
       console.log('13. Processed street:', street);
 
       const houseNumber = result.address?.houseNumber?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
-      console.log('3. Processed house number:', houseNumber);
+      console.log('14. Processed house number:', houseNumber);
 
       let title = result.title.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/ß/g, 'ss');
-      console.log('4. Processed title:', title);
+      console.log('15. Processed title:', title);
 
       const titleTokens = title.split(' ').filter((token: string | any[]) => token.length > 0);
-      console.log('5. Title tokens:', titleTokens);
+      console.log('16. Title tokens:', titleTokens);
 
-      const matchesGoogle = (formatted_address: string, name: string): boolean => {
-        console.log('6. Checking if HERE result matches Google data');
-        console.log('7. Google formatted address:', formatted_address);
-        console.log('8. Google name:', name);
+      const matchesGoogle = (formatted_address: string, googleName: string): boolean => {
+        console.log('17. Checking if HERE result matches Google data');
+        console.log('18. Google formatted address:', formatted_address);
+        console.log('19. Google name:', googleName);
 
         const lowerGoogleAddress = formatted_address.toLowerCase();
-        console.log('9. Lower Google address:', lowerGoogleAddress);
-        const lowerGoogleName = name.toLowerCase();
-        console.log('9a. Lower Google name:', lowerGoogleName);
+        const lowerGoogleName = googleName.toLowerCase();
 
-        const addressMatches = street && houseNumber && lowerGoogleAddress.includes(street) && lowerGoogleAddress.includes(houseNumber);
-        console.log('9b. Address matches:', addressMatches);
+        const addressMatches = street && houseNumber &&
+          lowerGoogleAddress.includes(street) &&
+          lowerGoogleAddress.includes(houseNumber);
+        console.log('20. Address matches:', addressMatches);
 
-        const nameMatches = titleTokens.every((token: string) => lowerGoogleName.includes(token));
-        console.log('10. Name matches:', nameMatches);
+        const nameMatches = titleTokens.some((token: string) => lowerGoogleName.includes(token));
+        console.log('21. Name matches:', nameMatches);
 
         const finalMatch = addressMatches && nameMatches;
-        console.log('11. Final match result:', finalMatch);
+        console.log('22. Final match result:', finalMatch);
 
         return finalMatch;
       };
@@ -191,7 +202,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
         lng: result.position.lng,
         matchesGoogle: matchesGoogle
       };
-
+      console.log('23. Returning result object:', result_obj);
 
       return result_obj;
     } catch (error) {
@@ -238,12 +249,6 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   const tableCellStyle: React.CSSProperties = {
     border: '2px solid black',
     padding: '8px',
-  };
-
-  const tableCellStyleWithGap = { // Assuming tableCellStyle is an existing style object you want to keep
-    ...tableCellStyle,
-    borderBottom: '20px solid transparent',
-    paddingBottom: '10px', // Adjust the '10px' as needed to control the gap size
   };
 
   const innerTableHeaderStyle = {
@@ -355,7 +360,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                           ))
                       ) : (
                         <tr>
-                          <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          <td colSpan={4} style={innerTableCellStyle}>No results found</td>
                         </tr>
                       )}
                     </tbody>
