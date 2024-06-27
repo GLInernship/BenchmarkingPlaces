@@ -424,7 +424,7 @@ const GridDivisionsMap: React.FC = () => {
 
   const saveGridDataToBackend = async (divisionData: any[]) => {
     try {
-      const response = await fetch('http://j5s9dm7w-9000.inc1.devtunnels.ms/api/grid-data', {
+      const response = await fetch('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/grid-data', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -128,6 +128,8 @@ const ResultPage: React.FC<ResultPageProps> = () => {
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
     
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
+
+    
   
     try {
       const response = await axios.get(url);
@@ -135,6 +137,11 @@ const ResultPage: React.FC<ResultPageProps> = () => {
       if (!result) {
         throw new Error('No results found');
       }
+
+      console.log('URL-',url);
+
+      console.log('Response-',response.data.items[0]);
+      
       return {
         name: result.title,
         lat: result.position.lat,

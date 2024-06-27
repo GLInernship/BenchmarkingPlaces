@@ -205,7 +205,7 @@ const NearbySearchPage: React.FC = () => {
               }));
               results.push(...nearbyPlaces);
 
-              console.log('Response-',response[0]);
+              console.log('Google Response-',response);
 
               if (pagination && pagination.hasNextPage && results.length < resultLimit) {
                 pagination.nextPage();
