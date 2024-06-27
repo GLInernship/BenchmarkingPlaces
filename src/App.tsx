@@ -4,6 +4,7 @@ import { GridProvider } from './Components/GridContext';
 import Map from './Components/Map';
 import NearbySearchPage from './Components/NearbySearchPage';
 import ResultPage from './Components/ResultPage';
+import ReportGenerationPage from './Components/ReportGenerationPage';
 
 const App: React.FC = () => {
   return (
@@ -15,6 +16,7 @@ const App: React.FC = () => {
             <Route path="/BenchmarkingPlaces" element={<Map />} />
             <Route path="/nearby-search" element={<NearbySearchPage />} />
             <Route path="/result-page" element={<ResultPage />} />
+            <Route path="/report-generation" element={<ReportGenerationPage />} />
           </Routes>
         </div>
       </Router>
@@ -23,3 +25,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+
