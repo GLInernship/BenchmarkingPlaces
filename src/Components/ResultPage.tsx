@@ -80,45 +80,53 @@ const ResultPage: React.FC<ResultPageProps> = () => {
       const hereResults: { [key: string]: HereAddressSearchState } = {};
       const googleResults: { [key: string]: GoogleGeocodingState } = {};
 
-      for (const group of groupedRLatLons) {
-        for (const ranLatLonsData of group.ranLatLonss) {
-          // HERE API calls for Google Places results
-          for (const place of ranLatLonsData.nearbyPlaces) {
-            const searchKey = `${place.name}-${place.formatted_address}`;
-            if (place.formatted_address && !hereResults[searchKey]) {
-              hereResults[searchKey] = { result: null, loading: true, error: null };
-              setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
+      await Promise.all(
+        groupedRLatLons.map(async (group) => {
+          await Promise.all(
+            group.ranLatLonss.map(async (ranLatLonsData) => {
+              // HERE API calls for Google Places results
+              await Promise.all(
+                ranLatLonsData.nearbyPlaces.map(async (place) => {
+                  const searchKey = `${place.name}-${place.formatted_address}`;
+                  if (place.formatted_address && !hereResults[searchKey]) {
+                    hereResults[searchKey] = { result: null, loading: true, error: null };
+                    setHereAddressResults((prevState) => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
 
-              try {
-                const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);/////
-                hereResults[searchKey] = { result, loading: false, error: null };
-              } catch (error) {
-                const message = error instanceof Error ? error.message : 'An unknown error occurred';
-                hereResults[searchKey] = { result: null, loading: false, error: message };
-              }
-              setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
-            }
-          }
+                    try {
+                      const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);
+                      hereResults[searchKey] = { result, loading: false, error: null };
+                    } catch (error) {
+                      const message = error instanceof Error ? error.message : 'An unknown error occurred';
+                      hereResults[searchKey] = { result: null, loading: false, error: message };
+                    }
+                    setHereAddressResults((prevState) => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
+                  }
+                })
+              );
 
-          // Google Geocoding API calls for HERE results
-          for (const place of ranLatLonsData.hereNearbyPlaces) {
-            const searchKey = `${place.name}-${place.address}`;
-            if (place.address && !googleResults[searchKey]) {
-              googleResults[searchKey] = { result: null, loading: true, error: null };
-              setGoogleGeocodingResults(prevState => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
+              // Google Geocoding API calls for HERE results
+              await Promise.all(
+                ranLatLonsData.hereNearbyPlaces.map(async (place) => {
+                  const searchKey = `${place.name}-${place.address}`;
+                  if (place.address && !googleResults[searchKey]) {
+                    googleResults[searchKey] = { result: null, loading: true, error: null };
+                    setGoogleGeocodingResults((prevState) => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
 
-              try {
-                const result = await searchGooglePlace(place.name, place.address, place.lat, place.lng);
-                googleResults[searchKey] = { result, loading: false, error: null };
-              } catch (error) {
-                const message = error instanceof Error ? error.message : 'An unknown error occurred';
-                googleResults[searchKey] = { result: null, loading: false, error: message };
-              }
-              setGoogleGeocodingResults(prevState => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
-            }
-          }
-        }
-      }
+                    try {
+                      const result = await searchGooglePlace(place.name, place.address, place.lat, place.lng);
+                      googleResults[searchKey] = { result, loading: false, error: null };
+                    } catch (error) {
+                      const message = error instanceof Error ? error.message : 'An unknown error occurred';
+                      googleResults[searchKey] = { result: null, loading: false, error: message };
+                    }
+                    setGoogleGeocodingResults((prevState) => ({ ...prevState, [searchKey]: googleResults[searchKey] }));
+                  }
+                })
+              );
+            })
+          );
+        })
+      );
     };
 
     fetchResults();
@@ -128,7 +136,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
     console.log('1. Entering searchHereAddress function');
     console.log('2. Input parameters:', { name, address, lat, lng });
   
-    const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q';
+    const HERE_API_KEY = '0jGKkBq4qSJKJ5mWdkmRAwuTBhYhAI8D56R5O5IbSPs';
     console.log('3. HERE API Key:', HERE_API_KEY);
   
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
