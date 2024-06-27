@@ -212,9 +212,9 @@ const ResultPage: React.FC<ResultPageProps> = () => {
             <th style={tableHeaderStyle}>Sub-Region</th>
             <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
             <th style={tableHeaderStyle}>Google Places API Results</th>
-            <th style={tableHeaderStyle}>HERE API Results Based on Google Results</th>
+            <th style={tableHeaderStyle}>HERE API Results Based on Google Results(Based on Name, Address and Coords)</th>
             <th style={tableHeaderStyle}>HERE API Results</th>
-            <th style={tableHeaderStyle}>Google API Results Based on HERE Results</th>
+            <th style={tableHeaderStyle}>Google API Results Based on HERE Results(Based on Address and Coords)</th>
           </tr>
         </thead>
         <tbody>
