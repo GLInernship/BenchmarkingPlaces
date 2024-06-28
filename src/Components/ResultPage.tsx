@@ -434,7 +434,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                       </tbody>
                     </table>
                   </td>
-                  {/* <td style={tableCellStyle}>
+                   <td style={tableCellStyle}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
                         <tr>
@@ -473,7 +473,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
                         )}
                       </tbody>
                     </table>
-                  </td> */}
+                  </td> 
                 </tr>
               ))
             ))}
