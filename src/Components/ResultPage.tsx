@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from './Header';
 
@@ -78,11 +78,23 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
+  const [matchingData, setMatchingData] = useState<{ matches: number, nonMatches: number }>({ matches: 0, nonMatches: 0 });
+
+  const navigate = useNavigate();
+
+
+  const navigateToVisualization = () => {
+    navigate('/visualization', { state: { matchingData } });
+  };
+
+
+
   useEffect(() => {
     const fetchResults = async () => {
       const hereResults: { [key: string]: HereAddressSearchState } = {};
       const googleResults: { [key: string]: GoogleGeocodingState } = {};
-
+      let matches = 0;
+      let nonMatches = 0;
       for (const group of groupedRLatLons) {
         for (const ranLatLonsData of group.ranLatLonss) {
           // HERE API calls for Google Places results
@@ -95,9 +107,17 @@ const ResultPage: React.FC<ResultPageProps> = () => {
               try {
                 const result = await searchHereAddress(place.name, place.formatted_address, place.lat, place.lng);/////
                 hereResults[searchKey] = { result, loading: false, error: null };
+                // Count matches and non-matches
+                if (result.matchesGoogle(place.formatted_address, place.name)) {
+                  matches++;
+                } else {
+                  nonMatches++;
+                }
+
               } catch (error) {
                 const message = error instanceof Error ? error.message : 'An unknown error occurred';
                 hereResults[searchKey] = { result: null, loading: false, error: message };
+                nonMatches++; // Consider errors as non-matches
               }
               setHereAddressResults(prevState => ({ ...prevState, [searchKey]: hereResults[searchKey] }));
             }
@@ -122,6 +142,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
           }
         }
       }
+      setMatchingData({ matches, nonMatches });
     };
 
     fetchResults();
@@ -303,6 +324,9 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   };
 
 
+
+
+
   return (
     <div>
       <Header isMapPage={true} ></Header>
@@ -324,6 +348,11 @@ const ResultPage: React.FC<ResultPageProps> = () => {
       >
         {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save Results to MongoDB'}
       </button>
+
+      <button onClick={navigateToVisualization} style={{ marginTop: '20px', padding: '10px 20px' }}>
+        View Matching Data Visualization
+      </button>
+
       <table style={{ borderCollapse: 'collapse', width: '100%' }}>
         <thead>
           <tr>
