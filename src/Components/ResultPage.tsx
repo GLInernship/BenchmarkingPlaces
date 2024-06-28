@@ -181,8 +181,9 @@ const ResultPage: React.FC<ResultPageProps> = () => {
         const nameMatches = titleTokens.every((token: string) => lowerGoogleName.includes(token));
         console.log('10. Name matches:', nameMatches);
 
-        const finalMatch = addressMatches && nameMatches;
-        console.log('11. Final match result:', finalMatch);
+        const finalMatch = addressMatches || nameMatches;
+      //  const finalMatch = addressMatches && nameMatches;
+        console.log('11. Final match result:', finalMatch)
 
         return finalMatch;
       };
