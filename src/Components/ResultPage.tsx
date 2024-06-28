@@ -151,7 +151,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
 
 
-    const HERE_API_KEY = '0jGKkBq4qSJKJ5mWdkmRAwuTBhYhAI8D56R5O5IbSPs';
+    const HERE_API_KEY = 'PH2VSIzVbqZj7eUACGByNuWl8jjHSzaV8FnM2qPEqMQ';
 
 
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
