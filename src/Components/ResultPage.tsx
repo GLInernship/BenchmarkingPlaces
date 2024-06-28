@@ -195,20 +195,11 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   };
 
   const searchGooglePlace = async (name: string, address: string, lat: number, lng: number): Promise<GooglePlaceResult> => {
-    const GOOGLE_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual Google API key
-    const encodedQuery = encodeURIComponent(`${address}`);
-    const url = `/maps/api/place/textsearch/json?query=${encodedQuery}&location=${lat},${lng}&key=${GOOGLE_API_KEY}`;
     try {
-      const response = await axios.get(url);
-      const result = response.data.results[0];
-      if (!result) {
-        throw new Error('No results found');
-      }
-      return {
-        name: result.name,
-        lat: result.geometry.location.lat,
-        lng: result.geometry.location.lng
-      };
+      const response = await axios.get('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/search-google-place', {
+        params: { name, address, lat, lng }
+      });
+      return response.data;
     } catch (error) {
       console.error('Error fetching Google place:', error);
       throw error;
