@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './CSS/map.css';
 import { useNavigate } from 'react-router-dom';
 import { useGridContext } from './GridContext';
-import hereLogo from './hereMaps.png';
+import Header from './Header';
 
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual API key
@@ -456,19 +456,8 @@ const GridDivisionsMap: React.FC = () => {
     return (
         <>
             <div className='main'>
-                <nav className='header'>
-                    <p>Benchmarking Places</p>
-                    <div className='search-container'>
-                        <input
-                            type="text"
-                            placeholder="Search for a place"
-                            ref={searchInputRef}
-                            className='search-input'
-                            required
-                        />
-                    </div>
-                    <img src={hereLogo} className='img' alt="here" />
-                </nav>
+                <Header ref={searchInputRef} isInput={true} ></Header>
+                
                 <div className='grid-map'>
                     <div className='map-container'>
                         <div style={{ width: '100%', height: '800px', border: '1px solid #ccc', borderRadius: '4px' }} ref={mapRef}>

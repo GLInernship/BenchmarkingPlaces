@@ -3,6 +3,7 @@ import { useGridContext } from './GridContext';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Header from './Header';
 
 interface RanLatLons {
   name: string;
@@ -254,6 +255,7 @@ const NearbySearchPage: React.FC = () => {
 
   return (
     <div>
+      <Header ref={undefined} isInput={false} ></Header>
       <h1>Nearby Search</h1>
       <p>Total Divisions: {totalDivisions}</p>
       <p>Place Type: {placeType.label}</p>

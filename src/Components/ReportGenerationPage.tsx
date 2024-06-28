@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from './Header';
 
 const ReportGenerationPage = () => {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ const ReportGenerationPage = () => {
 
   return (
     <div style={styles.page}>
+      <Header ref={undefined} isInput={false} ></Header>
       <h1 style={styles.title}>Recent Reports</h1>
       <div style={styles.buttonContainer}>
         <button style={styles.button} onClick={handleBackToMap}>Back to Map</button>
