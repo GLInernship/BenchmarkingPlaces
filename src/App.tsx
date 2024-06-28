@@ -10,7 +10,7 @@ const App: React.FC = () => {
   return (
     <GridProvider>
       <Router>
-        <div className="App">
+        <div className="App pg-bg">
           <Routes>
             <Route path="/BenchmarkingPlaces" element={<Map />} />
             <Route path="/nearby-search" element={<NearbySearchPage />} />

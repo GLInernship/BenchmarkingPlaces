@@ -28,7 +28,7 @@ const ReportGenerationPage = () => {
 
   return (
     <div style={styles.page}>
-      <Header ref={undefined} isInput={false} ></Header>
+      <Header isMapPage={true} ></Header>
       <h1 style={styles.title}>Recent Reports</h1>
       <div style={styles.buttonContainer}>
         <button style={styles.button} onClick={handleBackToMap}>Back to Map</button>

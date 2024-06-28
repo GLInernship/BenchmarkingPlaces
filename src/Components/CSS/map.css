@@ -52,8 +52,6 @@
 }
 
 
-
-
 .benchmarking-places {
     display: flex;
     flex-direction: column;
@@ -168,6 +166,13 @@ button {
 .img{
     width: 85px;
     height: 85px;
-    margin-left: 29%;
     border-radius: 50%;
+    margin-left: 964px;
+}
+
+.img2{
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    margin-left: 29%;
 }

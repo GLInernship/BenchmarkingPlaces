@@ -255,7 +255,7 @@ const NearbySearchPage: React.FC = () => {
 
   return (
     <div>
-      <Header ref={undefined} isInput={false} ></Header>
+      <Header isMapPage={true} ></Header>
       <h1>Nearby Search</h1>
       <p>Total Divisions: {totalDivisions}</p>
       <p>Place Type: {placeType.label}</p>

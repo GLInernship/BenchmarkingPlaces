@@ -2,19 +2,17 @@ import React from 'react'
 import hereLogo from './hereMaps.png';
 
 interface HeaderProps {
-    ref: React.RefObject<HTMLInputElement>; // Assuming ref is for an input element
-    isInput: boolean;
+    isMapPage: boolean;
   }
   
-function Header({ref, isInput}: HeaderProps) {
+function Header({isMapPage}: HeaderProps) {
     return (
         <nav className='header'>
             <p>Benchmarking Places</p>
             <div className='search-container'>
-                {isInput && <input
+                {!isMapPage && <input
                     type="text"
                     placeholder="Search for a place"
-                    ref={ref}
                     className='search-input'
                     required
                 />}

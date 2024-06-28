@@ -305,7 +305,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
 
   return (
     <div>
-      <Header ref={undefined} isInput={false} ></Header>
+      <Header isMapPage={true} ></Header>
       <h1>Search Results</h1>
       <p>Place Type: {placeType.label}</p>
       <button
