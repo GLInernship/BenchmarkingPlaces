@@ -49,8 +49,18 @@ const GridDivisionsMap: React.FC = () => {
     const [searchRadius, setSearchRadius] = useState<number>(1000);
     const [resultLimit, setResultLimit] = useState<number>(20);
     const [placeName, setPlaceName] = useState<string>('');
+    
 
     const [placeType, setPlaceType] = useState<PlaceType>(placeTypeOptions[0]);
+
+    useEffect(() => {
+      // Initialize placeName from localStorage when component mounts
+      const storedPlaceName = localStorage.getItem('placeName');
+      if (storedPlaceName) {
+          setPlaceName(storedPlaceName);
+      }
+  }, []);
+
 
     const handleSearchRadiusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(event.target.value);
@@ -518,7 +528,7 @@ const GridDivisionsMap: React.FC = () => {
                                 onKeyPress={handleKeyPress}
                                 min="1"
                                 max="20"
-                                placeholder="Enter POI count"
+                                placeholder="Enter Randon Lat Long count"
                                 required
                             />
                             <label>Place Type:</label>
