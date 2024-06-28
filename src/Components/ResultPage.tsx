@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+import Header from './Header';
 
 interface RanLatLons {
   name: string;
@@ -305,6 +306,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
 
   return (
     <div>
+      <Header isMapPage={true} ></Header>
       <h1>Search Results</h1>
       <p>Place Type: {placeType.label}</p>
       <button

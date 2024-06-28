@@ -10,8 +10,7 @@ const App: React.FC = () => {
   return (
     <GridProvider>
       <Router>
-        <div className="App" style={{margin: '0 5%'}}>
-          <h1>Benchmarking Places</h1>
+        <div className="App pg-bg">
           <Routes>
             <Route path="/BenchmarkingPlaces" element={<Map />} />
             <Route path="/nearby-search" element={<NearbySearchPage />} />
@@ -25,4 +24,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
