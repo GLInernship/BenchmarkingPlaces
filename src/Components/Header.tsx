@@ -1,7 +1,12 @@
 import React from 'react'
 import hereLogo from './hereMaps.png';
 
-function Header({ref:<HTMLInputElement>, isInput}) {
+interface HeaderProps {
+    ref: React.RefObject<HTMLInputElement>; // Assuming ref is for an input element
+    isInput: boolean;
+  }
+  
+function Header({ref, isInput}: HeaderProps) {
     return (
         <nav className='header'>
             <p>Benchmarking Places</p>
