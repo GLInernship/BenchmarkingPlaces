@@ -264,12 +264,12 @@ const NearbySearchPage: React.FC = () => {
       {!loading && !error && (
         <>
           <h2>Grouped Nearby Places:</h2>
-          <button onClick={handleSaveData} disabled={dataSaved}>
-            {dataSaved ? 'Data Saved' : 'Save Data'}
-          </button>
-          <button onClick={handleNextPage}>
-            Compare Data Between HERE and GOOGLE
-          </button>
+          <button style={{ marginBottom: '5px' , marginRight: '5px' }} onClick={handleSaveData} disabled={dataSaved}>
+  {dataSaved ? 'Data Saved' : 'Save Data'}
+</button>
+<button style={{ marginBottom: '5px' }} onClick={handleNextPage}>
+  Compare Data Between HERE and GOOGLE
+</button>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
   <thead>
     <tr>
@@ -371,3 +371,5 @@ const tableCellStyle = {
 };
 
 export default NearbySearchPage;
+
+

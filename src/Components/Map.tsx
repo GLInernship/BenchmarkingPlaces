@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './CSS/map.css';
 import { useNavigate } from 'react-router-dom';
 import { useGridContext } from './GridContext';
-import hereLogo from './hereMaps.png';
+import hereLogo from './HERE_logo.svg.png';
 
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual API key
@@ -471,7 +471,7 @@ const GridDivisionsMap: React.FC = () => {
                     <div className='search-container'>
                         <input
                             type="text"
-                            placeholder="Search for a place"
+                            placeholder="Search place"
                             ref={searchInputRef}
                             className='search-input 85px'
                             required
@@ -499,7 +499,7 @@ const GridDivisionsMap: React.FC = () => {
                     </div>
                     <div className='sidebar'>
                         <form onSubmit={handleFormSubmit} className='control-panel form-group'>
-                            <label className='label'>Number of Rows (M):</label>
+                            <label className='label'>Number of Rows :</label>
                             <input
                                 type="number"
                                 name="M"
@@ -509,7 +509,7 @@ const GridDivisionsMap: React.FC = () => {
                                 required
                                 min="1"
                             />
-                            <label>Number of Columns (N):</label>
+                            <label>Number of Columns :</label>
                             <input
                                 type="number"
                                 name="N"
@@ -579,3 +579,5 @@ const GridDivisionsMap: React.FC = () => {
 };
 
 export default GridDivisionsMap;
+
+

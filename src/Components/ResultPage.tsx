@@ -283,18 +283,19 @@ const ResultPage: React.FC<ResultPageProps> = () => {
         style={{
           marginTop: '20px',
           padding: '10px 20px',
-          fontSize: '16px',
+          fontSize: '13px',
           backgroundColor: isSaved ? '#cccccc' : '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
+          color: 'Black',
+          marginRight : '5px',
+          marginBottom : '5px',
+         
           cursor: isSaving || isSaved ? 'not-allowed' : 'pointer'
         }}
       >
         {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save Results to MongoDB'}
       </button>
 
-      <button onClick={navigateToVisualization} style={{ marginTop: '20px', padding: '10px 20px' }}>
+      <button onClick={navigateToVisualization} style={{ marginTop: '20px', padding: '10px 20px' , marginBottom : '5px' }}>
         View Matching Data Visualization
       </button>
 
@@ -485,3 +486,4 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   };
   
   export default ResultPage;
+
