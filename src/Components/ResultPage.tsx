@@ -158,8 +158,8 @@ const ResultPage: React.FC<ResultPageProps> = () => {
   }, [groupedRLatLons]);
 
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
-   // const HERE_API_KEY = 'L5lmAVOde08LJbnbqu3V4-ypjHx3BfDMkkj9JdNbqg4'; // aashi's key
-   const HERE_API_KEY = 'TIGOyh7aNyvOOOhmCm60Yrf7iaFL6lEESPtNYPXCINc'; // insha's key
+    const HERE_API_KEY = 'L5lmAVOde08LJbnbqu3V4-ypjHx3BfDMkkj9JdNbqg4'; // aashi's key
+    // const HERE_API_KEY = 'TIGOyh7aNyvOOOhmCm60Yrf7iaFL6lEESPtNYPXCINc'; // insha's key
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
 
@@ -172,15 +172,129 @@ const ResultPage: React.FC<ResultPageProps> = () => {
 
       const street = result.address?.street?.toLowerCase();
       const houseNumber = result.address?.houseNumber?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
-      let title = result.title.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/ß/g, 'ss');
+      let title = result.title.toLowerCase().replace(/\u00DF/g, 'ss').replace(/[.,-;:"'&()]/g, ' ');
       const titleTokens = title.split(' ').filter((token: string | any[]) => token.length > 0);
+
 
       const matchesGoogle = (formatted_address: string, name: string): boolean => {
         const lowerGoogleAddress = formatted_address.toLowerCase();
-        const lowerGoogleName = name.toLowerCase();
-        const addressMatches = street && houseNumber && lowerGoogleAddress.includes(street) && lowerGoogleAddress.includes(houseNumber);
-        const nameMatches = titleTokens.every((token: string) => lowerGoogleName.includes(token));
-        return addressMatches && nameMatches;
+        console.log('lowerGoogleAddress', lowerGoogleAddress);
+        const lowerGoogleName = name.toLowerCase().replace(/[.,-;:"'&()]/g, ' ');
+        console.log('lowerGoogleName', lowerGoogleName);
+        let streetmatches = street && lowerGoogleAddress.includes(street);
+
+        if (!streetmatches && street) {
+          const googleAddress = formatted_address.toLowerCase().replace(/[.,-;:"'&]/g, ' ');
+          const streetTokens = googleAddress.split(' ').filter((token: string | any[]) => token.length > 0);
+          streetmatches = streetTokens.some((token: string) => isSimilar(street, token));
+          if (streetmatches) {
+            // Later we will log this the place name and address and flag it as a similarity match
+            const similarityMatches = {
+              street: street,
+              googleAddress: googleAddress
+            };
+            console.log('similarityMatches', similarityMatches);
+          }
+
+
+        }
+        const addressMatches = streetmatches && houseNumber && lowerGoogleAddress.includes(houseNumber);
+
+        function isSimilar(str1: string, str2: string): boolean {
+          const similarityThreshold = 0.80; // Set the similarity threshold here
+          const similarity = calculateSimilarity(str1, str2); // Use a string similarity algorithm to calculate the similarity between the two strings
+          return similarity >= similarityThreshold;
+        }
+
+        function calculateSimilarity(str1: string, str2: string): number {
+          // Implement your string similarity algorithm here (e.g., Levenshtein distance or Jaro-Winkler distance)
+          // Return a value between 0 and 1 representing the similarity between the two strings
+          // Example implementation using Levenshtein distance:
+          const distance = levenshteinDistance(str1, str2);
+          const maxLength = Math.max(str1.length, str2.length);
+          return 1 - distance / maxLength;
+        }
+
+        function levenshteinDistance(str1: string, str2: string): number {
+          const m = str1.length;
+          const n = str2.length;
+          const dp: number[][] = [];
+
+          for (let i = 0; i <= m; i++) {
+            dp[i] = [];
+            dp[i][0] = i;
+          }
+
+          for (let j = 0; j <= n; j++) {
+            dp[0][j] = j;
+          }
+
+          for (let i = 1; i <= m; i++) {
+            for (let j = 1; j <= n; j++) {
+              if (str1[i - 1] === str2[j - 1]) {
+                dp[i][j] = dp[i - 1][j - 1];
+              } else {
+                dp[i][j] = Math.min(
+                  dp[i - 1][j] + 1, // Deletion
+                  dp[i][j - 1] + 1, // Insertion
+                  dp[i - 1][j - 1] + 1 // Substitution
+                );
+              }
+            }
+          }
+
+          return dp[m][n];
+        }
+        let nameMatchCount = 0;
+        titleTokens.forEach((token: string) => {
+          if (lowerGoogleName.includes(token)) {
+            nameMatchCount++;
+          }
+        }
+        );
+        const nameMatches = (titleTokens.length - nameMatchCount) <= 2;
+
+
+
+
+
+        const googleData = {
+
+          name: lowerGoogleName,
+
+          address: lowerGoogleAddress
+
+        };
+
+        const hereData = {
+
+          name: title,
+          // address: street + houseNumber,
+          street: street,
+          houseNumber: houseNumber,
+          oldTitle: result.title,
+          token: titleTokens,
+
+        };
+
+        let finalmatch = nameMatches;
+
+        if (finalmatch) {
+          if (!addressMatches) {
+            const distanceMatches = calculateDistance(lat, lng, result.position.lat, result.position.lng) < 0.100;
+            if (distanceMatches) {
+              // Later we will log this the place name and address and flag it as a distance match
+              finalmatch = distanceMatches && finalmatch;
+            }
+          }
+          else {
+            finalmatch = addressMatches && finalmatch;
+          }
+        }
+
+        console.log("googleData", googleData, "hereData", hereData, "address-matches", addressMatches, "name-matches", nameMatches, "finalmatch", finalmatch);
+
+        return finalmatch;
       };
 
       return {
