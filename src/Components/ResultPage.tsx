@@ -620,4 +620,3 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
 };
 
 export default ResultPage;
-
