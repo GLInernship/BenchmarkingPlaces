@@ -51,7 +51,7 @@ const PlaceDetailsPage: React.FC = () => {
   useEffect(() => {
     const fetchPlaceDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:9000/api/place/${passedPlaceName}`);
+        const response = await axios.get(`https://j5s9dm7w-9000.inc1.devtunnels.ms/api/place/${passedPlaceName}`);
         setPlaceDetails(response.data.placeDetails);
         const matchingData = calculateMatchingData(response.data.placeDetails);
         setMatchingData(matchingData);
