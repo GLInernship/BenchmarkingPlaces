@@ -138,7 +138,7 @@ const NearbySearchPage: React.FC = () => {
   const searchHereNearbyPlace = async (poi: RanLatLons): Promise<HereNearbyPlace[]> => {
     try {
       const params: any = {
-        apiKey: '3EZevmR2R6YjSHBA7ZV420aLgcKuDrV7S55reCb-Ttw',
+        apiKey: '',
         at: `${poi.lat},${poi.lng}`,
         limit: resultLimit,
         in: `circle:${poi.lat},${poi.lng};r=${searchRadius}`
