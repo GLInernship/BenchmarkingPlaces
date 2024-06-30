@@ -5,7 +5,7 @@ export const AppContainer = styled.div`
   max-width: 100%;
   max-height: 100vh;
   margin: 0 auto;
-  padding: 20px;
+  
   background-color: #f9f9f9;
 `;
 
@@ -14,7 +14,7 @@ export const ReloadButton = styled.button`
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 20px;
   cursor: pointer;
   margin: auto;
   width: 100px;
@@ -58,11 +58,14 @@ export const Main = styled.main`
 export const SearchBar = styled.input`
   width: 50%;
   padding: 10px;
-  font-size: 16px;
+  font-size: 14px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 20px;
   margin-bottom: 20px;
-  background-color: yellow;
+
+
+
+ 
 `;
 
 export const FilterContainer = styled.div`

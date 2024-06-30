@@ -124,7 +124,7 @@ const VisualizationPage: React.FC<VisualizationPageProps> = () => {
   style={{
     width: '100%',
     background: 'linear-gradient(to right, #A8DEC6, #E0E1A7)',
-    padding: '10px 0',
+    padding: '0px 0',
     marginBottom: '5px',
     display: 'flex',
     alignItems: 'center',
@@ -135,7 +135,7 @@ const VisualizationPage: React.FC<VisualizationPageProps> = () => {
     src={hereLogo}
     alt="HERE Logo" 
     style={{
-      height: '90px',
+      height: '70px',
       marginLeft: '20px',
      
     }}
