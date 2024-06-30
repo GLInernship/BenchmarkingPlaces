@@ -175,113 +175,77 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
 
       const street = result.address?.street?.toLowerCase();
       const houseNumber = result.address?.houseNumber?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
-      let title = result.title.toLowerCase().replace(/\u00DF/g, 'ss').replace(/[.,-;:"'&()]/g, ' ');
+      let title = result.title.toLowerCase().replace(/\u00DF/g, 'ss').replace(/[.,-;:"&()]/g, ' ').replace(/[']/g, '');
       const titleTokens = title.split(' ').filter((token: string | any[]) => token.length > 0);
 
-
+      let neededNameSimilarity = false;
       let neededStreetSimilary = false;
       let neededDistanceMatch = false;
-      
-
 
       const matchesGoogle = (formatted_address: string, name: string): boolean => {
         const lowerGoogleAddress = formatted_address.toLowerCase();
+        const lowerGoogleName = name.toLowerCase().replace(/[.,-;:"&()]/g, ' ').replace(/[']/g, '');
         console.log('lowerGoogleAddress', lowerGoogleAddress);
-        const lowerGoogleName = name.toLowerCase().replace(/[.,-;:"'&()]/g, ' ');
         console.log('lowerGoogleName', lowerGoogleName);
-        let streetMatches = street && lowerGoogleAddress.includes(street);
+        
          //use this for database
+        let nameMatches = false;
+        let addressMatches = false;
+        let streetMatches = false;
+        let distanceMatches = false;
 
-        if (!streetMatches && street) {
-          const googleAddress = formatted_address.toLowerCase().replace(/[.,-;:"'&]/g, ' ');
-          const streetTokens = googleAddress.split(' ').filter((token: string | any[]) => token.length > 0);
-          streetMatches = streetTokens.some((token: string) => isSimilar(street, token));
-          if (streetMatches) {
-            // Later we will log this the place name and address and flag it as a similarity match
-            neededStreetSimilary = true;
-            const similarityMatches = {
-              street: street,
-              googleAddress: googleAddress
-            };
-            console.log('similarityMatches', similarityMatches);
-          }
+         let nameMatchCount = 0;
 
+         titleTokens.forEach((token: string) => {
+           if (lowerGoogleName.includes(token)) {  
+             nameMatchCount++;
+           }
+         }
+         );
+ 
+         let nameMismatchThreshold = 0;
 
-        }
-        const addressMatches = streetMatches && houseNumber && lowerGoogleAddress.includes(houseNumber);
+         if (titleTokens.length > 8) {
+           nameMismatchThreshold = Math.floor(titleTokens.length / 3);
+         }
+         else if (titleTokens.length > 5) {
+           nameMismatchThreshold = 2;
+         }
+         else if (titleTokens.length > 2) {
+           nameMismatchThreshold = 1;
+         }
+         
+        nameMatches = (titleTokens.length - nameMatchCount) <= nameMismatchThreshold;
+        neededNameSimilarity = !(titleTokens.length == nameMatchCount);
 
-        function isSimilar(str1: string, str2: string): boolean {
-          const similarityThreshold = 0.80; // Set the similarity threshold here
-          const similarity = calculateSimilarity(str1, str2); // Use a string similarity algorithm to calculate the similarity between the two strings
-          return similarity >= similarityThreshold;
-        }
-
-        function calculateSimilarity(str1: string, str2: string): number {
-          // Implement your string similarity algorithm here (e.g., Levenshtein distance or Jaro-Winkler distance)
-          // Return a value between 0 and 1 representing the similarity between the two strings
-          // Example implementation using Levenshtein distance:
-          const distance = levenshteinDistance(str1, str2);
-          const maxLength = Math.max(str1.length, str2.length);
-          return 1 - distance / maxLength;
-        }
-
-        function levenshteinDistance(str1: string, str2: string): number {
-          const m = str1.length;
-          const n = str2.length;
-          const dp: number[][] = [];
-
-          for (let i = 0; i <= m; i++) {
-            dp[i] = [];
-            dp[i][0] = i;
-          }
-
-          for (let j = 0; j <= n; j++) {
-            dp[0][j] = j;
-          }
-
-          for (let i = 1; i <= m; i++) {
-            for (let j = 1; j <= n; j++) {
-              if (str1[i - 1] === str2[j - 1]) {
-                dp[i][j] = dp[i - 1][j - 1];
-              } else {
-                dp[i][j] = Math.min(
-                  dp[i - 1][j] + 1, // Deletion
-                  dp[i][j - 1] + 1, // Insertion
-                  dp[i - 1][j - 1] + 1 // Substitution
-                );
-              }
+        if (nameMatches)
+        {
+          streetMatches = street && lowerGoogleAddress.includes(street);
+          if (!streetMatches && street) {
+            const googleAddress = formatted_address.toLowerCase().replace(/[.,-;:"'&]/g, ' ');
+            const streetTokens = googleAddress.split(' ').filter((token: string | any[]) => token.length > 0);
+            streetMatches = streetTokens.some((token: string) => isSimilar(street, token));
+            if (streetMatches) {
+              // Later we will log this the place name and address and flag it as a similarity match
+              neededStreetSimilary = true;
+              const similarityMatches = {
+                street: street,
+                googleAddress: googleAddress
+              };
             }
-          }
 
-          return dp[m][n];
-        }
-        let nameMatchCount = 0;
-        titleTokens.forEach((token: string) => {
-          if (lowerGoogleName.includes(token)) {
-            nameMatchCount++;
+
           }
+          addressMatches = streetMatches && houseNumber && lowerGoogleAddress.includes(houseNumber);
         }
-        );
-        const nameMatches = (titleTokens.length - nameMatchCount) <= 2;
-        const googleData = {
-          name: lowerGoogleName,
-          address: lowerGoogleAddress
-        };
-        const hereData = {
-          name: title,
-          // address: street + houseNumber,
-          street: street,
-          houseNumber: houseNumber,
-          oldTitle: result.title,
-          token: titleTokens,
-        };
 
         let finalmatch = nameMatches;
         
-
         if (finalmatch) {
           if (!addressMatches) {
-            const distanceMatches = calculateDistance(lat, lng, result.position.lat, result.position.lng) < 0.100;
+            
+            distanceMatches = calculateDistance(lat, lng, result.position.lat, result.position.lng) < 0.100;
+
             if (distanceMatches) {
               finalmatch = distanceMatches && finalmatch;
               neededDistanceMatch = true;
@@ -289,14 +253,37 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
           }
         }
 
-        console.log("googleData", googleData,
-           "hereData", hereData,
-            "address-matches", addressMatches,
-             "name-matches", nameMatches,
-              "finalmatch", finalmatch,
-              "neededStreetSimilary", neededStreetSimilary,
-              "neededDistanceMatch", neededDistanceMatch
-            );
+        const googleData = {
+          name: lowerGoogleName,
+          address: lowerGoogleAddress
+        };
+        const hereData = {
+          name: title,
+          street: street,
+          houseNumber: houseNumber,
+          oldTitle: result.title,
+          token: titleTokens,
+        };
+        const matchData = {
+          nameMatches: nameMatches,
+          addressMatches: addressMatches,
+          streetMatches: streetMatches,
+          distanceMatches: distanceMatches,
+          finalmatch: finalmatch
+        }
+        const similarityRequirements = {
+          neededNameSimilarity: neededNameSimilarity,
+          neededStreetSimilary: neededStreetSimilary,
+          neededDistanceMatch: neededDistanceMatch
+        }
+
+        console.log(
+          "googleData", googleData,
+          "hereData", hereData,
+          "matchData", matchData,
+          "similarityRequirements", similarityRequirements
+        );
+        
 
         return finalmatch;
       };
@@ -315,6 +302,52 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
       throw error;
     }
   };
+
+  function isSimilar(str1: string, str2: string): boolean {
+    const similarityThreshold = 0.80; // Set the similarity threshold here
+    const similarity = calculateSimilarity(str1, str2); // Use a string similarity algorithm to calculate the similarity between the two strings
+    return similarity >= similarityThreshold;
+  }
+
+  function calculateSimilarity(str1: string, str2: string): number {
+    // Implement your string similarity algorithm here (e.g., Levenshtein distance or Jaro-Winkler distance)
+    // Return a value between 0 and 1 representing the similarity between the two strings
+    // Example implementation using Levenshtein distance:
+    const distance = levenshteinDistance(str1, str2);
+    const maxLength = Math.max(str1.length, str2.length);
+    return 1 - distance / maxLength;
+  }
+
+  function levenshteinDistance(str1: string, str2: string): number {
+    const m = str1.length;
+    const n = str2.length;
+    const dp: number[][] = [];
+
+    for (let i = 0; i <= m; i++) {
+      dp[i] = [];
+      dp[i][0] = i;
+    }
+
+    for (let j = 0; j <= n; j++) {
+      dp[0][j] = j;
+    }
+
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (str1[i - 1] === str2[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1];
+        } else {
+          dp[i][j] = Math.min(
+            dp[i - 1][j] + 1, // Deletion
+            dp[i][j - 1] + 1, // Insertion
+            dp[i - 1][j - 1] + 1 // Substitution
+          );
+        }
+      }
+    }
+
+    return dp[m][n];
+  }
 
   const searchGooglePlace = async (name: string, address: string, lat: number, lng: number): Promise<GooglePlaceResult> => {
     try {
