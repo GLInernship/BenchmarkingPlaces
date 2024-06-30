@@ -124,7 +124,7 @@ const GridDivisionsMap: React.FC = () => {
                     setPlaceName(place.name || '');
 
                     drawPlaceOutline(place, googleMap);
-                    displayBoundingBoxCoords(place);
+                    // displayBoundingBoxCoords(place);
                 } else {
                     console.error('Place selected does not have geometry');
                     setIsPlaceSelected(false); // Add this line
@@ -174,22 +174,22 @@ const GridDivisionsMap: React.FC = () => {
         }
     };
 
-    const displayBoundingBoxCoords = (place: google.maps.places.PlaceResult) => {
-        if (place.geometry && place.geometry.viewport) {
-            const bounds = place.geometry.viewport;
-            const ne = bounds.getNorthEast();
-            const sw = bounds.getSouthWest();
+    // const displayBoundingBoxCoords = (place: google.maps.places.PlaceResult) => {
+    //     if (place.geometry && place.geometry.viewport) {
+    //         const bounds = place.geometry.viewport;
+    //         const ne = bounds.getNorthEast();
+    //         const sw = bounds.getSouthWest();
 
-            const coords = [
-                `North-East: (Lat: ${ne.lat().toFixed(6)}, Lng: ${ne.lng().toFixed(6)})`,
-                `North-West: (Lat: ${ne.lat().toFixed(6)}, Lng: ${sw.lng().toFixed(6)})`,
-                `South-West: (Lat: ${sw.lat().toFixed(6)}, Lng: ${sw.lng().toFixed(6)})`,
-                `South-East: (Lat: ${sw.lat().toFixed(6)}, Lng: ${ne.lng().toFixed(6)})`
-            ];
+    //         const coords = [
+    //             `North-East: (Lat: ${ne.lat().toFixed(6)}, Lng: ${ne.lng().toFixed(6)})`,
+    //             `North-West: (Lat: ${ne.lat().toFixed(6)}, Lng: ${sw.lng().toFixed(6)})`,
+    //             `South-West: (Lat: ${sw.lat().toFixed(6)}, Lng: ${sw.lng().toFixed(6)})`,
+    //             `South-East: (Lat: ${sw.lat().toFixed(6)}, Lng: ${ne.lng().toFixed(6)})`
+    //         ];
 
-            setBoundingBoxCoords(coords);
-        }
-    };
+    //         setBoundingBoxCoords(coords);
+    //     }
+    // };
 
     const handleGridDivisionsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -501,7 +501,8 @@ const GridDivisionsMap: React.FC = () => {
               <div style={{ width: '100%', height: '800px', border: '1px solid #ccc', borderRadius: '4px' }} ref={mapRef}>
                 Loading Map...
               </div>
-              <RightSection>
+              {/* Display Random lat lons */}
+              {/* <RightSection>
                 <CoordinateContainer>
                   {boundingBoxCoords.map((coord, index) => (
                     <div className='coordinate' key={index}>{coord}</div>
@@ -512,7 +513,7 @@ const GridDivisionsMap: React.FC = () => {
                     <div className='box-detail' key={index}>{detail}</div>
                   ))}
                 </BoundingBoxDetails>
-              </RightSection>
+              </RightSection> */}
             </MapContainer>
             <Sidebar>
               <FormGroup as="form" onSubmit={handleFormSubmit}>
