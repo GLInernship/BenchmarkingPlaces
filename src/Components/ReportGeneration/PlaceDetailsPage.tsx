@@ -2,6 +2,56 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import Header from '../Header';
 import axios from 'axios';
+import styled from 'styled-components';
+
+// Styled components
+// Styled components
+const Container = styled.div`
+  width: 100%;
+  overflow-x: auto;
+  zoom: 0.7;
+`;
+
+const StyledTable = styled.table`
+  border-collapse: collapse;
+  width: 100%;
+`;
+
+const TableHeader = styled.th`
+  border: 1px solid black;
+  padding: 8px;
+  background-color: #f2f2f2;
+  text-align: left;
+`;
+
+const TableCell = styled.td`
+  border: 1px solid black;
+  padding: 0;
+  vertical-align: top;
+`;
+
+const InnerTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+`;
+
+const InnerTableHeader = styled.th`
+  border: 1px solid black;
+  padding: 4px;
+  background-color: #e6e6e6;
+  text-align: left;
+`;
+
+const InnerTableCell = styled.td`
+  border: 1px solid black;
+  padding: 4px;
+`;
+
+const Button = styled.button`
+  margin-top: 20px;
+  padding: 10px 20px;
+  margin-bottom: 5px;
+`;
 
 interface PlaceDetails {
   placeName: string;
@@ -89,11 +139,6 @@ const PlaceDetailsPage: React.FC = () => {
     navigate('/visualization', { state: { matchingData } });
   };
 
-  const tableHeaderStyle = { border: '1px solid black', padding: '8px', backgroundColor: '#f2f2f2' };
-  const tableCellStyle = { border: '1px solid black', padding: '8px' };
-  const innerTableHeaderStyle = { border: '1px solid black', padding: '4px', backgroundColor: '#e6e6e6' };
-  const innerTableCellStyle = { border: '1px solid black', padding: '4px' };
-
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -103,135 +148,135 @@ const PlaceDetailsPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <Container>
       <Header isMapPage={true} />
       <h1>Search Results</h1>
-      <p>Place Name: {placeDetails.placeName || 'N/A'}</p>
-      <button onClick={navigateToVisualization} style={{ marginTop: '20px', padding: '10px 20px', marginBottom: '5px' }}>
+      <p>Place Name: {placeDetails?.placeName || 'N/A'}</p>
+      <Button onClick={navigateToVisualization}>
         View Matching Data Visualization
-      </button>
+      </Button>
 
-      {placeDetails.results && placeDetails.results.length > 0 ? (
-        <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+      {placeDetails?.results && placeDetails.results.length > 0 ? (
+        <StyledTable>
           <thead>
             <tr>
-              <th style={tableHeaderStyle}>Sub-Region</th>
-              <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
-              <th style={tableHeaderStyle}>Google Places API Results</th>
-              <th style={tableHeaderStyle}>HERE API Results Based on Google Results</th>
-              <th style={tableHeaderStyle}>HERE API Results</th>
-              <th style={tableHeaderStyle}>Google API Results Based on HERE Results</th>
+              <TableHeader>Sub-Region</TableHeader>
+              <TableHeader>LAT-LNG Coordinates</TableHeader>
+              <TableHeader>Google Places API Results</TableHeader>
+              <TableHeader>HERE API Results Based on Google Results</TableHeader>
+              <TableHeader>HERE API Results</TableHeader>
+              <TableHeader>Google API Results Based on HERE Results</TableHeader>
             </tr>
           </thead>
           <tbody>
             {placeDetails.results.map((result, index) => (
               <tr key={index}>
-                <td style={tableCellStyle}>{result.subRegion}</td>
-                <td style={tableCellStyle}>
+                <TableCell>{result.subRegion}</TableCell>
+                <TableCell>
                   ({result.latLng.lat.toFixed(6)}, {result.latLng.lng.toFixed(6)})
-                </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                </TableCell>
+                <TableCell>
+                  <InnerTable>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Type</th>
-                        <th style={innerTableHeaderStyle}>Address</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
+                        <InnerTableHeader>Name</InnerTableHeader>
+                        <InnerTableHeader>Type</InnerTableHeader>
+                        <InnerTableHeader>Address</InnerTableHeader>
+                        <InnerTableHeader>Coordinates</InnerTableHeader>
                       </tr>
                     </thead>
                     <tbody>
                       {result.googlePlaces.map((place, placeIndex) => (
                         <tr key={placeIndex}>
-                          <td style={innerTableCellStyle}>{place.name}</td>
-                          <td style={innerTableCellStyle}>{place.types.join(', ')}</td>
-                          <td style={innerTableCellStyle}>{place.formatted_address}</td>
-                          <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                          <InnerTableCell>{place.name}</InnerTableCell>
+                          <InnerTableCell>{place.types.join(', ')}</InnerTableCell>
+                          <InnerTableCell>{place.formatted_address}</InnerTableCell>
+                          <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  </InnerTable>
+                </TableCell>
+                <TableCell>
+                  <InnerTable>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Type</th>
-                        <th style={innerTableHeaderStyle}>Address</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
-                        <th style={innerTableHeaderStyle}>Matches Google</th>
-                        <th style={innerTableHeaderStyle}>Needed Street Similarity</th>
-                        <th style={innerTableHeaderStyle}>Needed Distance Match</th>
-                        <th style={innerTableHeaderStyle}>Needed Name Match</th>
+                        <InnerTableHeader>Name</InnerTableHeader>
+                        <InnerTableHeader>Type</InnerTableHeader>
+                        <InnerTableHeader>Address</InnerTableHeader>
+                        <InnerTableHeader>Coordinates</InnerTableHeader>
+                        <InnerTableHeader>Matches Google</InnerTableHeader>
+                        <InnerTableHeader>Needed Street Similarity</InnerTableHeader>
+                        <InnerTableHeader>Needed Distance Match</InnerTableHeader>
+                        <InnerTableHeader>Needed Name Match</InnerTableHeader>
                       </tr>
                     </thead>
                     <tbody>
                       {result.hereBasedOnGoogle.map((place, placeIndex) => (
                         <tr key={placeIndex}>
-                          <td style={innerTableCellStyle}>{place.name}</td>
-                          <td style={innerTableCellStyle}>{place.categoryHereType}</td>
-                          <td style={innerTableCellStyle}>{place.address}</td>
-                          <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
-                          <td style={innerTableCellStyle}>{place.matchesGoogle ? 'Yes' : 'No'}</td>
-                          <td style={innerTableCellStyle}>{place.neededStreetSimilary ? 'Yes' : 'No'}</td>
-                          <td style={innerTableCellStyle}>{place.neededDistanceMatch ? 'Yes' : 'No'}</td>
-                        <td style={innerTableCellStyle}>{place.neededNameSimilarity ? 'Yes' : 'No'}</td>
+                          <InnerTableCell>{place.name}</InnerTableCell>
+                          <InnerTableCell>{place.categoryHereType}</InnerTableCell>
+                          <InnerTableCell>{place.address}</InnerTableCell>
+                          <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
+                          <InnerTableCell>{place.matchesGoogle ? 'Yes' : 'No'}</InnerTableCell>
+                          <InnerTableCell>{place.neededStreetSimilary ? 'Yes' : 'No'}</InnerTableCell>
+                          <InnerTableCell>{place.neededDistanceMatch ? 'Yes' : 'No'}</InnerTableCell>
+                          <InnerTableCell>{place.neededNameSimilarity ? 'Yes' : 'No'}</InnerTableCell>
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  </InnerTable>
+                </TableCell>
+                <TableCell>
+                  <InnerTable>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Type</th>
-                        <th style={innerTableHeaderStyle}>Address</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
+                        <InnerTableHeader>Name</InnerTableHeader>
+                        <InnerTableHeader>Type</InnerTableHeader>
+                        <InnerTableHeader>Address</InnerTableHeader>
+                        <InnerTableHeader>Coordinates</InnerTableHeader>
                       </tr>
                     </thead>
                     <tbody>
                       {result.herePlaces.map((place, placeIndex) => (
                         <tr key={placeIndex}>
-                          <td style={innerTableCellStyle}>{place.name}</td>
-                          <td style={innerTableCellStyle}>{place.categoryType}</td>
-                          <td style={innerTableCellStyle}>{place.address}</td>
-                          <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                          <InnerTableCell>{place.name}</InnerTableCell>
+                          <InnerTableCell>{place.categoryType}</InnerTableCell>
+                          <InnerTableCell>{place.address}</InnerTableCell>
+                          <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  </InnerTable>
+                </TableCell>
+                <TableCell>
+                  <InnerTable>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
+                        <InnerTableHeader>Name</InnerTableHeader>
+                        <InnerTableHeader>Coordinates</InnerTableHeader>
                       </tr>
                     </thead>
                     <tbody>
                       {result.googleBasedOnHere.map((place, placeIndex) => (
                         <tr key={placeIndex}>
-                          <td style={innerTableCellStyle}>{place ? place.name : 'N/A'}</td>
-                          <td style={innerTableCellStyle}>
+                          <InnerTableCell>{place ? place.name : 'N/A'}</InnerTableCell>
+                          <InnerTableCell>
                             {place ? `(${place.lat.toFixed(6)}, ${place.lng.toFixed(6)})` : 'N/A'}
-                          </td>
+                          </InnerTableCell>
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </td>
+                  </InnerTable>
+                </TableCell>
               </tr>
             ))}
           </tbody>
-        </table>
+        </StyledTable>
       ) : (
         <p>No results available</p>
       )}
-    </div>
+    </Container>
   );
 };
 

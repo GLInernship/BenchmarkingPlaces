@@ -2,6 +2,70 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from './Header';
+import styled from 'styled-components';
+
+const ResultPageContainer = styled.div`
+  width: 100%;
+  overflow-x: auto;
+  zoom: 0.7;
+`;
+
+const StyledTable = styled.table`
+  border-collapse: collapse;
+  width: 100%;
+`;
+
+const StyledTh = styled.th`
+  border: 1px solid black;
+  padding: 8px;
+  background-color: #f2f2f2;
+  font-weight: bold;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+`;
+
+const StyledTd = styled.td`
+  border: 2px solid black;
+  padding: 8px;
+  vertical-align: top;
+`;
+
+const InnerTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+`;
+
+const InnerTh = styled.th`
+  background-color: #f0f0f0;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+`;
+
+const InnerTd = styled.td`
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+`;
+
+const Button = styled.button`
+  margin-top: 20px;
+  width: 10%;
+  padding: 0.5rem;
+  font-size: 13px;
+  background: linear-gradient(to bottom, #A8DEC6 12%, #E0E1A7 100%);
+  background-color: ${props => props.disabled ? '#cccccc' : '#4CAF50'};
+  color: Black;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  outline: 0.5px solid #949292;
+  border-radius: 15px;
+  border: none;
+  box-shadow: 10px 10px 10px rgba(3,3,3,0);
+`;
 
 interface RanLatLons {
   name: string;
@@ -474,42 +538,31 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
   };
 
   return (
-    <div>
-      <Header isMapPage={true} ></Header>
+    <ResultPageContainer>
+      <Header isMapPage={true} />
       <h1>Search Results</h1>
       <p>Place Type: {placeType.label}</p>
       <p>Place Name: {placeName}</p>
-      <button
+      <Button
         onClick={saveDataToMongoDB}
         disabled={isSaving || isSaved}
-        style={{
-          marginTop: '20px',
-          padding: '10px 20px',
-          fontSize: '13px',
-          backgroundColor: isSaved ? '#cccccc' : '#4CAF50',
-          color: 'Black',
-          marginRight: '5px',
-          marginBottom: '5px',
-
-          cursor: isSaving || isSaved ? 'not-allowed' : 'pointer'
-        }}
       >
         {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save Results to MongoDB'}
-      </button>
+      </Button>
 
-      <button onClick={navigateToVisualization} style={{ marginTop: '20px', padding: '10px 20px', marginBottom: '5px' }}>
+      <Button onClick={navigateToVisualization}>
         View Matching Data Visualization
-      </button>
+      </Button>
 
-      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+      <StyledTable>
         <thead>
           <tr>
-            <th style={tableHeaderStyle}>Sub-Region</th>
-            <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
-            <th style={tableHeaderStyle}>Google Places API Results</th>
-            <th style={tableHeaderStyle}>HERE API Results Based on Google Results(Based on Name, Address and Coords)</th>
-            <th style={tableHeaderStyle}>HERE API Results</th>
-            <th style={tableHeaderStyle}>Google API Results Based on HERE Results(Based on Address and Coords)</th> 
+            <StyledTh>Sub-Region</StyledTh>
+            <StyledTh>LAT-LNG Coordinates</StyledTh>
+            <StyledTh>Google Places API Results</StyledTh>
+            <StyledTh>HERE API Results Based on Google Results</StyledTh>
+            <StyledTh>HERE API Results</StyledTh>
+            <StyledTh>Google API Results Based on HERE Results</StyledTh>
           </tr>
         </thead>
         <tbody>
@@ -517,21 +570,21 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
             group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => (
               <tr key={`${group.subregion_id}-${ranLatLonsIndex}`}>
                 {ranLatLonsIndex === 0 && (
-                  <td style={tableCellStyle} rowSpan={group.ranLatLonss.length}>
+                  <StyledTd rowSpan={group.ranLatLonss.length}>
                     {group.subregion_id}
-                  </td>
+                  </StyledTd>
                 )}
-                <td style={tableCellStyle}>
+                <StyledTd>
                   ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
-                </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                </StyledTd>
+                <StyledTd>
+                  <InnerTable>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Type</th>
-                        <th style={innerTableHeaderStyle}>Address</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
+                        <InnerTh>Name</InnerTh>
+                        <InnerTh>Type</InnerTh>
+                        <InnerTh>Address</InnerTh>
+                        <InnerTh>Coordinates</InnerTh>
                       </tr>
                     </thead>
                     <tbody>
@@ -550,17 +603,17 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
                         </tr>
                       )}
                     </tbody>
-                  </table>
-                </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  </InnerTable>
+                </StyledTd>
+                <StyledTd>
+                  <InnerTable>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
-                        <th style={innerTableHeaderStyle}>Status</th>
-                        <th style={innerTableHeaderStyle}>Matches Google</th>
-                        <th style={innerTableHeaderStyle}>Distance Diff (km)</th>
+                        <InnerTh>Name</InnerTh>
+                        <InnerTh>Coordinates</InnerTh>
+                        <InnerTh>Status</InnerTh>
+                        <InnerTh>Matches Google</InnerTh>
+                        <InnerTh>Distance Diff (km)</InnerTh>
                       </tr>
                     </thead>
                     <tbody>
@@ -608,16 +661,16 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
                         </tr>
                       )}
                     </tbody>
-                  </table>
-                </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  </InnerTable>
+                </StyledTd>
+                <StyledTd>
+                  <InnerTable>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Type</th>
-                        <th style={innerTableHeaderStyle}>Address</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
+                        <InnerTh>Name</InnerTh>
+                        <InnerTh>Type</InnerTh>
+                        <InnerTh>Address</InnerTh>
+                        <InnerTh>Coordinates</InnerTh>
                       </tr>
                     </thead>
                     <tbody>
@@ -636,15 +689,15 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
                         </tr>
                       )}
                     </tbody>
-                  </table>
-                </td>
-                <td style={tableCellStyle}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  </InnerTable>
+                </StyledTd>
+                <StyledTd>
+                  <InnerTable>
                     <thead>
                       <tr>
-                        <th style={innerTableHeaderStyle}>Name</th>
-                        <th style={innerTableHeaderStyle}>Coordinates</th>
-                        <th style={innerTableHeaderStyle}>Status</th>
+                        <InnerTh>Name</InnerTh>
+                        <InnerTh>Coordinates</InnerTh>
+                        <InnerTh>Status</InnerTh>
                       </tr>
                     </thead>
                     <tbody>
@@ -676,14 +729,14 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
                         </tr>
                       )}
                     </tbody>
-                  </table>
-                </td>
+                  </InnerTable>
+                </StyledTd>
               </tr>
             ))
           ))}
         </tbody>
-      </table>
-    </div>
+      </StyledTable>
+    </ResultPageContainer>
   );
 };
 

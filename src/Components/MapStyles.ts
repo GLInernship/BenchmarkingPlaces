@@ -2,6 +2,15 @@ import styled from 'styled-components';
 
 export const MainContainer = styled.div`
   overflow-y: hidden;
+  zoom: 0.9;
+
+  @media (max-width: 768px) {
+    zoom: 0.8;
+  }
+
+  @media (max-width: 576px) {
+    zoom: 0.7;
+  }
 `;
 
 export const Header = styled.nav`
@@ -34,8 +43,11 @@ export const Header = styled.nav`
 export const SearchContainer = styled.div`
   order: 1;
   margin: auto;
-  margin-left: 425px;
+  margin-left: 400px;
   box-shadow: 10px 10px 10px rgba(3,3,3,0);
+  position: relative;
+  display: flex;
+  align-items: center;
 `;
 
 export const SearchInput = styled.input`
@@ -44,6 +56,16 @@ export const SearchInput = styled.input`
   width: 400px;
   padding: 0.8rem;
   padding-left: 35px;
+`;
+
+export const SearchIcon = styled.svg`
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #888;
 `;
 
 export const GridMap = styled.div`

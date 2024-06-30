@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
+import styled from 'styled-components';
 
 interface RanLatLons {
   name: string;
@@ -256,122 +257,168 @@ const NearbySearchPage: React.FC = () => {
   
 
   return (
-    <div>
-      <Header isMapPage={true} ></Header>
+    <Container>
+      <Header isMapPage={true} />
       <h1>Nearby Search</h1>
       <p>Total Divisions: {totalDivisions}</p>
       <p>Place Type: {placeType.label}</p>
       <p>Place Name: {placeName}</p>
       {loading && <p>Loading nearby places...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
       {!loading && !error && (
         <>
           <h2>Grouped Nearby Places:</h2>
-          <button style={{ marginBottom: '5px' , marginRight: '5px' }} onClick={handleSaveData} disabled={dataSaved}>
-  {dataSaved ? 'Data Saved' : 'Save Data'}
-</button>
-<button style={{ marginBottom: '5px' }} onClick={handleNextPage}>
-  Compare Data Between HERE and GOOGLE
-</button>
-          <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-  <thead>
-    <tr>
-      <th style={tableHeaderStyle}>Sub-Region</th>
-      <th style={tableHeaderStyle}>LAT-LNG Coordinates</th>
-      <th style={tableHeaderStyle}>Google Places API Results</th>
-      <th style={tableHeaderStyle}>HERE API Results</th>
-    </tr>
-  </thead>
-  <tbody>
-    {groupedRLatLons.map((group) => (
-      group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => (
-        <React.Fragment key={`${group.subregion_id}-${ranLatLonsIndex}`}>
-          <tr>
-            {ranLatLonsIndex === 0 && (
-              <td style={tableCellStyle} rowSpan={group.ranLatLonss.length}>
-                {group.subregion_id}
-              </td>
-            )}
-            <td style={tableCellStyle}>
-              ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
-            </td>
-            <td style={tableCellStyle}>
-              <table style={{ width: '100%' }}>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Address</th>
-                    <th>Coordinates</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ranLatLonsData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
-                    <tr key={`google-${placeIndex}`}>
-                      <td>{place.name}</td>
-                      <td>{place.types ? place.types[0] : 'N/A'}</td>
-                      <td>{place.formatted_address}</td>
-                      <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
-                    </tr>
-                  ))}
-                  {ranLatLonsData.nearbyPlaces.length === 0 && (
-                    <tr>
-                      <td colSpan={4}>No API key found or error in API or No results found</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </td>
-            <td style={tableCellStyle}>
-              <table style={{ width: '100%' }}>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Address</th>
-                    <th>Coordinates</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ranLatLonsData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
-                    <tr key={`here-${placeIndex}`}>
-                      <td>{place.name}</td>
-                      <td>{place.categoryType || 'N/A'}</td>
-                      <td>{place.address}</td>
-                      <td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
-                    </tr>
-                  ))}
-                  {ranLatLonsData.hereNearbyPlaces.length === 0 && (
-                    <tr>
-                      <td colSpan={4}>No API key found or error in API or No results found</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </td>
-          </tr>
-        </React.Fragment>
-      ))
-    ))}
-  </tbody>
-</table>
+          <Button onClick={handleSaveData} disabled={dataSaved}>
+            {dataSaved ? 'Data Saved' : 'Save Data'}
+          </Button>
+          <Button onClick={handleNextPage}>
+            Compare Data Between HERE and GOOGLE
+          </Button>
+          <Table>
+            <thead>
+              <tr>
+                <TableHeader>Sub-Region</TableHeader>
+                <TableHeader>LAT-LNG Coordinates</TableHeader>
+                <TableHeader>Google Places API Results</TableHeader>
+                <TableHeader>HERE API Results</TableHeader>
+              </tr>
+            </thead>
+            <tbody>
+              {groupedRLatLons.map((group) =>
+                group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => (
+                  <React.Fragment key={`${group.subregion_id}-${ranLatLonsIndex}`}>
+                    <TableRow>
+                      {ranLatLonsIndex === 0 && (
+                        <TableCell rowSpan={group.ranLatLonss.length}>
+                          {group.subregion_id}
+                        </TableCell>
+                      )}
+                      <TableCell>
+                        ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
+                      </TableCell>
+                      <TableCell>
+                        <SubTable>
+                          <thead>
+                            <tr>
+                              <SubTableHeader>Name</SubTableHeader>
+                              <SubTableHeader>Type</SubTableHeader>
+                              <SubTableHeader>Address</SubTableHeader>
+                              <SubTableHeader>Coordinates</SubTableHeader>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {ranLatLonsData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
+                              <tr key={`google-${placeIndex}`}>
+                                <SubTableCell>{place.name}</SubTableCell>
+                                <SubTableCell>{place.types ? place.types[0] : 'N/A'}</SubTableCell>
+                                <SubTableCell>{place.formatted_address}</SubTableCell>
+                                <SubTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</SubTableCell>
+                              </tr>
+                            ))}
+                            {ranLatLonsData.nearbyPlaces.length === 0 && (
+                              <tr>
+                                <SubTableCell colSpan={4}>No API key found or error in API or No results found</SubTableCell>
+                              </tr>
+                            )}
+                          </tbody>
+                        </SubTable>
+                      </TableCell>
+                      <TableCell>
+                        <SubTable>
+                          <thead>
+                            <tr>
+                              <SubTableHeader>Name</SubTableHeader>
+                              <SubTableHeader>Type</SubTableHeader>
+                              <SubTableHeader>Address</SubTableHeader>
+                              <SubTableHeader>Coordinates</SubTableHeader>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {ranLatLonsData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
+                              <tr key={`here-${placeIndex}`}>
+                                <SubTableCell>{place.name}</SubTableCell>
+                                <SubTableCell>{place.categoryType || 'N/A'}</SubTableCell>
+                                <SubTableCell>{place.address}</SubTableCell>
+                                <SubTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</SubTableCell>
+                              </tr>
+                            ))}
+                            {ranLatLonsData.hereNearbyPlaces.length === 0 && (
+                              <tr>
+                                <SubTableCell colSpan={4}>No API key found or error in API or No results found</SubTableCell>
+                              </tr>
+                            )}
+                          </tbody>
+                        </SubTable>
+                      </TableCell>
+                    </TableRow>
+                  </React.Fragment>
+                ))
+              )}
+            </tbody>
+          </Table>
         </>
       )}
-    </div>
+    </Container>
   );
+
 };
 
-const tableHeaderStyle = {
-  border: '1px solid black',
-  padding: '8px',
-  backgroundColor: '#f2f2f2',
-  fontWeight: 'bold',
-};
+const Container = styled.div`
+  padding: 0px;
+  zoom: 0.8;
+`;
 
-const tableCellStyle = {
-  border: '1px solid black',
-  padding: '8px',
-};
+const ErrorMessage = styled.p`
+  color: red;
+`;
+
+const Button = styled.button`
+  margin-bottom: 5px;
+  margin-right: 5px;
+  width: 10%;
+`;
+
+const Table = styled.table`
+  border-collapse: collapse;
+  width: 100%;
+`;
+
+const TableHeader = styled.th`
+  border: 5px solid black;
+  padding: 8px;
+  background-color: #f2f2f2;
+  font-weight: bold;
+`;
+
+const TableRow = styled.tr`
+  &:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+`;
+
+const TableCell = styled.td`
+  border: 5px solid black;
+  padding: 8px;
+  vertical-align: top;
+`;
+
+const SubTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+`;
+
+const SubTableHeader = styled.th`
+  border: 5px solid #ddd;
+  padding: 4px;
+  background-color: #e6e6e6;
+  font-weight: bold;
+`;
+
+const SubTableCell = styled.td`
+  border: 5px solid #ddd;
+  padding: 4px;
+`;
+
 
 export default NearbySearchPage;
 
