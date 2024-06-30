@@ -85,6 +85,11 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
 
   const navigate = useNavigate();
 
+  function checkForDistanceThreshold(lat1: number, lon1: number, lat2: number, lon2: number): boolean {
+    const distanceThreshold = .200;
+    return calculateDistance(lat1, lon1, lat2, lon2) <= distanceThreshold;
+  }
+
   function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Radius of the Earth in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -185,10 +190,7 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
       const matchesGoogle = (formatted_address: string, name: string): boolean => {
         const lowerGoogleAddress = formatted_address.toLowerCase();
         const lowerGoogleName = name.toLowerCase().replace(/[.,-;:"&()]/g, ' ').replace(/[']/g, '');
-        console.log('lowerGoogleAddress', lowerGoogleAddress);
-        console.log('lowerGoogleName', lowerGoogleName);
         
-         //use this for database
         let nameMatches = false;
         let addressMatches = false;
         let streetMatches = false;
@@ -203,6 +205,7 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
          }
          );
  
+         // Set the allowed number of name token mismatches based on the word count of the (Here) name
          let nameMismatchThreshold = 0;
 
          if (titleTokens.length > 8) {
@@ -216,40 +219,42 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
          }
          
         nameMatches = (titleTokens.length - nameMatchCount) <= nameMismatchThreshold;
+        // If not an exact match, log it as a similarity match
         neededNameSimilarity = !(titleTokens.length == nameMatchCount);
 
+        // If we get a name match, proceed with other checks. Else discard this result
         if (nameMatches)
         {
           streetMatches = street && lowerGoogleAddress.includes(street);
+
+          // If street doesn't match exactly, check for similarity (ie. spelling errors)
           if (!streetMatches && street) {
             const googleAddress = formatted_address.toLowerCase().replace(/[.,-;:"'&]/g, ' ');
             const streetTokens = googleAddress.split(' ').filter((token: string | any[]) => token.length > 0);
             streetMatches = streetTokens.some((token: string) => isSimilar(street, token));
             if (streetMatches) {
-              // Later we will log this the place name and address and flag it as a similarity match
+              // Flag and Log the possible spelling error
               neededStreetSimilary = true;
-              const similarityMatches = {
-                street: street,
-                googleAddress: googleAddress
-              };
             }
-
-
           }
           addressMatches = streetMatches && houseNumber && lowerGoogleAddress.includes(houseNumber);
         }
 
-        let finalmatch = nameMatches;
+        let finalMatch = nameMatches;
         
-        if (finalmatch) {
+        if (finalMatch) {
+
+          //if name matches but address doesn't, check for distance match
           if (!addressMatches) {
             
-            distanceMatches = calculateDistance(lat, lng, result.position.lat, result.position.lng) < 0.100;
+            distanceMatches = checkForDistanceThreshold(lat, lng, result.position.lat, result.position.lng);
+            finalMatch = distanceMatches && finalMatch;
 
             if (distanceMatches) {
-              finalmatch = distanceMatches && finalmatch;
+              // Log that a distance match was needed to match Places
               neededDistanceMatch = true;
             }
+
           }
         }
 
@@ -269,7 +274,7 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
           addressMatches: addressMatches,
           streetMatches: streetMatches,
           distanceMatches: distanceMatches,
-          finalmatch: finalmatch
+          finalmatch: finalMatch
         }
         const similarityRequirements = {
           neededNameSimilarity: neededNameSimilarity,
@@ -286,7 +291,7 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
         );
         
 
-        return finalmatch;
+        return finalMatch;
       };
 
       return {
