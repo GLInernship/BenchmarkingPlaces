@@ -4,7 +4,7 @@ import { GridProvider } from './Components/GridContext';
 import Map from './Components/Map';
 import NearbySearchPage from './Components/NearbySearchPage';
 import ResultPage from './Components/ResultPage';
-import VisualizationPage from './Components/VisualizationPage';
+import {VisualizationPage} from './Components/VisualizationPage';
 import Reportgenerationpage from './Components/ReportGeneration/Reportgenerationpage';
 import PlaceDetailsPage from './Components/ReportGeneration/PlaceDetailsPage';
 
