@@ -371,11 +371,21 @@ const Container = styled.div`
 const ErrorMessage = styled.p`
   color: red;
 `;
-
 const Button = styled.button`
-  margin-bottom: 5px;
-  margin-right: 5px;
+  margin-top: 20px;
   width: 10%;
+  padding: 0.5rem;
+  font-size: 10px;
+  background: linear-gradient(to bottom, #A8DEC6 12%, #E0E1A7 100%);
+  background-color: ${props => props.disabled ? '#cccccc' : '#4CAF50'};
+  color: Black;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  outline: 0.5px solid #949292;
+  border-radius: 20px;
+  border: none;
+  box-shadow: 10px 10px 10px rgba(3,3,3,0);
 `;
 
 const Table = styled.table`
