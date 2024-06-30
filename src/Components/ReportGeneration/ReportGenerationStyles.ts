@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 export const AppContainer = styled.div`
   font-family: Arial, sans-serif;
-  max-width: 1200px;
+  max-width: 100%;
   max-height: 100vh;
   margin: 0 auto;
   padding: 20px;
@@ -18,7 +18,7 @@ export const ReloadButton = styled.button`
   cursor: pointer;
   margin: auto;
   width: 100px;
-  position: absolute;
+  
   right: 520px;
   top: 70px;
 `;
@@ -56,7 +56,7 @@ export const Main = styled.main`
 `;
 
 export const SearchBar = styled.input`
-  width: 90%;
+  width: 50%;
   padding: 10px;
   font-size: 16px;
   border: 1px solid #ccc;

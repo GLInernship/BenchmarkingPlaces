@@ -21,6 +21,7 @@ import {
   PlaceName,
   PlaceLocation,
 } from './ReportGenerationStyles'; // Adjust the import path as necessary
+import Headerr from '../Header';
 
 interface Place {
   placeName: string;
@@ -79,17 +80,20 @@ const Reportgenerationpage: React.FC = () => {
 
   return (
     <AppContainer>
-      <Header>
+      
+      <Headerr isMapPage={true} ></Headerr>
+      {/* <Header>
         <Logo>
           <LogoIcon>📍🤣</LogoIcon>
           Benchmarking-Places
         </Logo>
         <NavLink href="/BenchmarkingPlaces">Home</NavLink>
 
-      </Header>
-      <ReloadButton onClick={handleReloadClick}>Reload</ReloadButton> {/* Reload Button */}
+      </Header> */}
+      
       <Main>
-        typescriptCopy<SearchBar
+      <ReloadButton onClick={handleReloadClick}>Reload</ReloadButton> {/* Reload Button */}
+        <SearchBar
           type="text"
           placeholder="Search locations, landmarks, or addresses"
           value={searchTerm}
@@ -98,20 +102,7 @@ const Reportgenerationpage: React.FC = () => {
             // Optionally, you can debounce this to reduce unnecessary renders
           }}
         />
-        <FilterContainer>
-          <FilterGroup>
-            <FilterLabel>Filter by:</FilterLabel>
-            <FilterSelect value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-              <option value="">Type</option>
-            </FilterSelect>
-          </FilterGroup>
-          <FilterGroup>
-            <FilterLabel>Sort by:</FilterLabel>
-            <FilterSelect value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="Most Relevant">Most Relevant</option>
-            </FilterSelect>
-          </FilterGroup>
-        </FilterContainer>
+        
         <PlacesGrid>
           {filteredPlaces.map((place, index) => (
             <PlaceCard key={index} onClick={() => handlePlaceClick(place.placeName)}>

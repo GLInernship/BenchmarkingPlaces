@@ -1,7 +1,7 @@
 import React from 'react';
 import hereLogo from './HERE_logo.svg.png';
 import searchIcon from './search-bar-01.png'; // Import the search icon
-import '../Components/CSS/map.css';
+import '../Components/CSS/Header.css';
 
 interface HeaderProps {
   isMapPage: boolean;
