@@ -5,7 +5,7 @@ export const AppContainer = styled.div`
   max-width: 100%;
   max-height: 100vh;
   margin: 0 auto;
-  
+  padding: 0px;
   background-color: #f9f9f9;
 `;
 
@@ -18,7 +18,6 @@ export const ReloadButton = styled.button`
   cursor: pointer;
   margin: auto;
   width: 100px;
-  
   right: 520px;
   top: 70px;
 `;

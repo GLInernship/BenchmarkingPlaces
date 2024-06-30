@@ -161,8 +161,8 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
   }, [groupedRLatLons]);
 
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
-    const HERE_API_KEY = 'L5lmAVOde08LJbnbqu3V4-ypjHx3BfDMkkj9JdNbqg4'; // aashi's key
-    // const HERE_API_KEY = 'TIGOyh7aNyvOOOhmCm60Yrf7iaFL6lEESPtNYPXCINc'; // insha's key
+   // const HERE_API_KEY = 'L5lmAVOde08LJbnbqu3V4-ypjHx3BfDMkkj9JdNbqg4'; // aashi's key
+     const HERE_API_KEY = 'TIGOyh7aNyvOOOhmCm60Yrf7iaFL6lEESPtNYPXCINc'; // insha's key
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
 
@@ -281,7 +281,8 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
           "googleData", googleData,
           "hereData", hereData,
           "matchData", matchData,
-          "similarityRequirements", similarityRequirements
+          "similarityRequirements", similarityRequirements,
+          "matchesgoogle", matchesGoogle,
         );
         
 
@@ -392,7 +393,8 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
     setIsSaving(true);
     try {
       const dataToSave = {
-        placeName: placeName, // Add this line to include placeName
+        placeName: placeName,
+        placeType: placeType, // Add this line to include placeType
         results: groupedRLatLons.flatMap(group =>
           group.ranLatLonss.map(ranLatLonsData => ({
             subRegion: group.subregion_id,
@@ -405,28 +407,31 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
               const searchKey = `${place.name}-${place.formatted_address}`;
               const hereResult = hereAddressResults[searchKey]?.result;
               if (hereResult) {
-                hereResult.matchesGoogle(place.formatted_address, place.name);
+                const matchesGoogleResult = hereResult.matchesGoogle(place.formatted_address, place.name);
                 return { 
-                  ...hereResult, 
-                  neededStreetSimilary: hereResult.neededStreetSimilary || false,
+                  name: hereResult.name,
+                  lat: hereResult.lat,
+                  lng: hereResult.lng,
+                  matchesGoogle: matchesGoogleResult,
+                  neededStreetSimilary: hereResult.neededStreetSimilary,
                   neededDistanceMatch: hereResult.updateNeededDistanceMatch()
                 };
               }
               return null;
-            }),
+            }).filter(Boolean),
             herePlaces: ranLatLonsData.hereNearbyPlaces,
             googleBasedOnHere: ranLatLonsData.hereNearbyPlaces.map(place => {
               const searchKey = `${place.name}-${place.address}`;
               return googleGeocodingResults[searchKey]?.result || null;
-            })
+            }).filter(Boolean)
           }))
         )
       };
   
-      const response = await axios.post('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/save-results', dataToSave);
+      const response = await axios.post('http://localhost:9000/api/save-results', dataToSave);
       if (response.data.success) {
         alert('Data saved successfully!');
-        setIsSaved(true); // Mark as saved
+        setIsSaved(true);
       } else {
         throw new Error('Failed to save data');
       }
@@ -474,7 +479,7 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
             <th style={tableHeaderStyle}>Google Places API Results</th>
             <th style={tableHeaderStyle}>HERE API Results Based on Google Results(Based on Name, Address and Coords)</th>
             <th style={tableHeaderStyle}>HERE API Results</th>
-            {/* <th style={tableHeaderStyle}>Google API Results Based on HERE Results(Based on Address and Coords)</th> */}
+            <th style={tableHeaderStyle}>Google API Results Based on HERE Results(Based on Address and Coords)</th> 
           </tr>
         </thead>
         <tbody>

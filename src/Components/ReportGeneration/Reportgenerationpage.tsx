@@ -5,16 +5,8 @@ import { useNavigate } from 'react-router-dom'; // Step 1: Updated import
 import {
   AppContainer,
   ReloadButton,
-  Header,
-  Logo,
-  LogoIcon,
-  NavLink,
   Main,
   SearchBar,
-  FilterContainer,
-  FilterGroup,
-  FilterLabel,
-  FilterSelect,
   PlacesGrid,
   PlaceCard,
   PlaceImage,
@@ -72,8 +64,8 @@ const Reportgenerationpage: React.FC = () => {
   };
 
 
-  const handlePlaceClick = (placeName: string) => { // Step 3: Updated function
-    navigate(`/place/${placeName}`); // Use navigate for navigation
+  const handlePlaceClick = (placeName: string) => {
+    navigate(`/place/${placeName}`, { state: { placeName } });
   };
 
   const filteredPlaces = filterPlaces(places, searchTerm);
