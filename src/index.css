@@ -15,4 +15,5 @@ code {
 
 .pg-bg{
   background-color: rgb(242, 237, 237);
+  max-height: fit-content;
 }

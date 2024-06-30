@@ -1,0 +1,219 @@
+.map-container {
+    display: flex;
+    width: 100%;
+    background: rgba(234, 235, 235, 0.45);
+    box-shadow: 40px 40px 10px rgba(3,3,3,0);
+
+    
+    background: linear-gradient(to right, rgba(152, 244, 202, 0.45) 12%, rgba(255, 255, 255, 0.45) 100%);
+}
+
+.coordinate {
+    margin-left: 25px;
+    font-family: noto sans jp, sans-serif;
+    font-weight: bold;
+    font-size: 18px;
+    width: 500px;
+}
+
+.mapinput {
+    margin-bottom: 20px;
+    width: 200px;
+    height: 25px;
+    border: 2px solid rgb(255, 255, 255);
+    border-radius: 5px;
+    padding-left: 5px;
+}
+
+.control-panel {
+    margin-top: 20px;
+    
+
+    label {
+        margin-left: 18px;
+        margin-right: 5px;
+        font-weight: bold;
+    }
+
+    input {
+        margin-right: 5px;
+        width: 50px;
+        border: 1px solid black;
+        background: rgba(234, 235, 235, 0.65);
+    }
+
+    button {
+        margin-right: 5px;
+        
+    }
+}
+
+.box-detail {
+    font-weight: lighter;
+    font-family: noto sans jp, sans-serif;
+    font-size: 16px;
+    
+}
+
+.bounding-box-details {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    
+}
+
+
+.benchmarking-places {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.header {
+    background: linear-gradient(to left, #A8DEC6 12%, #E0E1A7 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between; /* Ensures elements are spaced out */
+    align-items: center;
+    padding: 0 18px; /* Adjust padding as needed */
+}
+
+.header p {
+    order: 2;
+    padding: 8px;
+    color: #000000;
+    font-size: 24px;
+    font-family: "Noto Sans JP";
+    font-weight: 700;
+    margin-left: auto; /* Keeps p on the right */
+}
+.header img {
+    order: 0;
+    width: 85px;
+    height: 85px;
+    border-radius: 5%;
+    margin-right: 50px;
+}
+.main-content {
+    display: flex;
+    flex: 1;
+}
+
+.sidebar {
+    width: 400px;
+    background-color: rgb(255, 255, 255);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    box-shadow: 10px 10px 10px rgba(3,3,3,0);
+    
+}
+
+.map-container {
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgb(255, 255, 255); /* Added border */
+    box-shadow: 40px 40px 10px rgba(3,3,3,0);
+  
+
+}
+
+.form-group input,
+.form-group select {
+    width: 90%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 15px;
+    border: 1px solid grey;
+    margin-bottom: 42px;
+    
+    
+}
+
+.button-group {
+    margin-top: 20%;
+    margin-left: 8%;
+}
+
+button {
+    width: 45%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    background: linear-gradient(to bottom, #A8DEC6 12%, #E0E1A7 100%);
+    color: rgb(0, 0, 0);
+    border: none;
+    cursor: pointer;
+    border-radius: 15px;
+    box-shadow: 10px 10px 10px rgba(3,3,3,0);
+    outline: 0.5px solid #949292;
+}
+
+.search-container {
+    order: 1;
+    margin: auto; /* Centers the search bar */
+    margin-left: 425px;
+    box-shadow: 10px 10px 10px rgba(3,3,3,0);
+}
+.search-bar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    box-shadow: 10px 10px 10px rgba(3,3,3,0);
+  }
+
+.grid-map {
+    display: flex;
+    flex-direction: row-reverse;
+    height: 100%;
+}
+
+.search-input {
+    border: none;
+    border-radius: 15px;
+    width: 400px;
+    padding: 0.8rem;
+    padding-left: 35px;
+}
+.search-icon {
+    position: absolute;
+    left: 10px; /* Adjust based on your design */
+    height: 20px; /* Adjust based on your design */
+    width: 20px; /* Adjust based on your design */
+  }
+  
+.typeSelect {
+    width: 95% !important;
+    background: rgba(234, 235, 235, 0.65);
+    
+    box-shadow: 10px 10px 10px rgba(3,3,3,0);
+}
+
+.button2 {
+    width: 92%;
+}
+
+.right-section {
+    height: 400px;
+    margin-top: 20px;
+}
+
+.bounding-box-details {
+    margin-left: 10%;
+    margin-top: 5%;
+    overflow: scroll;
+    overflow-x: hidden;
+    height: 600px;
+}
+
+.main {
+    overflow-y: hidden;
+}
+
+
+
+.img2 {
+    order: 0;
+    width: 85px;
+    height: 85px;
+    border-radius: 5%;
+}

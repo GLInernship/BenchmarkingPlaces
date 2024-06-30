@@ -51,6 +51,7 @@ interface LocationState {
   searchRadius: number;
   resultLimit: number;
   placeType: PlaceType;
+  placeName: string; // Add this line
 }
 
 const NearbySearchPage: React.FC = () => {
@@ -66,7 +67,8 @@ const NearbySearchPage: React.FC = () => {
     centers, 
     searchRadius: initialSearchRadius, 
     resultLimit: initialResultLimit, 
-    placeType 
+    placeType,
+    placeName // Add this line
   } = location.state as LocationState;
 
   const [searchRadius, setSearchRadius] = useState<number>(initialSearchRadius);
@@ -75,8 +77,8 @@ const NearbySearchPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleNextPage = () => {
-    navigate('/result-page', { state: { groupedRLatLons, placeType } });
-  };
+  navigate('/result-page', { state: { groupedRLatLons, placeType, placeName } });
+};
 
 
   useEffect(() => {
@@ -259,17 +261,18 @@ const NearbySearchPage: React.FC = () => {
       <h1>Nearby Search</h1>
       <p>Total Divisions: {totalDivisions}</p>
       <p>Place Type: {placeType.label}</p>
+      <p>Place Name: {placeName}</p>
       {loading && <p>Loading nearby places...</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {!loading && !error && (
         <>
           <h2>Grouped Nearby Places:</h2>
-          <button onClick={handleSaveData} disabled={dataSaved}>
-            {dataSaved ? 'Data Saved' : 'Save Data'}
-          </button>
-          <button onClick={handleNextPage}>
-            Compare Data Between HERE and GOOGLE
-          </button>
+          <button style={{ marginBottom: '5px' , marginRight: '5px' }} onClick={handleSaveData} disabled={dataSaved}>
+  {dataSaved ? 'Data Saved' : 'Save Data'}
+</button>
+<button style={{ marginBottom: '5px' }} onClick={handleNextPage}>
+  Compare Data Between HERE and GOOGLE
+</button>
           <table style={{ borderCollapse: 'collapse', width: '100%' }}>
   <thead>
     <tr>
@@ -371,3 +374,4 @@ const tableCellStyle = {
 };
 
 export default NearbySearchPage;
+
