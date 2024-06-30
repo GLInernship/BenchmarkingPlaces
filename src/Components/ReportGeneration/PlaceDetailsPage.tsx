@@ -22,6 +22,9 @@ interface PlaceDetails {
       matchesGoogle: boolean;
       neededStreetSimilary: boolean;
       neededDistanceMatch: boolean;
+      neededNameSimilarity: boolean;
+      address: string;
+      categoryHereType : string;
     }>;
     herePlaces: Array<{
       categoryType: string;
@@ -154,20 +157,26 @@ const PlaceDetailsPage: React.FC = () => {
                     <thead>
                       <tr>
                         <th style={innerTableHeaderStyle}>Name</th>
+                        <th style={innerTableHeaderStyle}>Type</th>
+                        <th style={innerTableHeaderStyle}>Address</th>
                         <th style={innerTableHeaderStyle}>Coordinates</th>
                         <th style={innerTableHeaderStyle}>Matches Google</th>
                         <th style={innerTableHeaderStyle}>Needed Street Similarity</th>
                         <th style={innerTableHeaderStyle}>Needed Distance Match</th>
+                        <th style={innerTableHeaderStyle}>Needed Name Match</th>
                       </tr>
                     </thead>
                     <tbody>
                       {result.hereBasedOnGoogle.map((place, placeIndex) => (
                         <tr key={placeIndex}>
                           <td style={innerTableCellStyle}>{place.name}</td>
+                          <td style={innerTableCellStyle}>{place.categoryHereType}</td>
+                          <td style={innerTableCellStyle}>{place.address}</td>
                           <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
                           <td style={innerTableCellStyle}>{place.matchesGoogle ? 'Yes' : 'No'}</td>
                           <td style={innerTableCellStyle}>{place.neededStreetSimilary ? 'Yes' : 'No'}</td>
                           <td style={innerTableCellStyle}>{place.neededDistanceMatch ? 'Yes' : 'No'}</td>
+                        <td style={innerTableCellStyle}>{place.neededNameSimilarity ? 'Yes' : 'No'}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -51,8 +51,13 @@ interface HereAddressSearchResult {
   lng: number;
   matchesGoogle: (googleAddress: string, googleName: string) => boolean;
   neededStreetSimilary: boolean;
+  updateNeededStreetSimilary: () => boolean;
   neededDistanceMatch: boolean;
   updateNeededDistanceMatch: () => boolean;
+  neededNameSimilarity: boolean;
+  updateNeededNameSimilarity: () => boolean;
+  address: string;
+  categoryHereType: string;
 }
 
 interface HereAddressSearchState {
@@ -86,7 +91,7 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
   const navigate = useNavigate();
 
   function checkForDistanceThreshold(lat1: number, lon1: number, lat2: number, lon2: number): boolean {
-    const distanceThreshold = .200;
+    const distanceThreshold = .100;
     return calculateDistance(lat1, lon1, lat2, lon2) <= distanceThreshold;
   }
 
@@ -167,7 +172,8 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
 
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
    // const HERE_API_KEY = 'L5lmAVOde08LJbnbqu3V4-ypjHx3BfDMkkj9JdNbqg4'; // aashi's key
-     const HERE_API_KEY = 'TIGOyh7aNyvOOOhmCm60Yrf7iaFL6lEESPtNYPXCINc'; // insha's key
+    // const HERE_API_KEY = 'TIGOyh7aNyvOOOhmCm60Yrf7iaFL6lEESPtNYPXCINc'; // insha's key
+     const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q'; // sajal's key
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
 
@@ -181,11 +187,18 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
       const street = result.address?.street?.toLowerCase();
       const houseNumber = result.address?.houseNumber?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
       let title = result.title.toLowerCase().replace(/\u00DF/g, 'ss').replace(/[.,-;:"&()]/g, ' ').replace(/[']/g, '');
+      const categories = result.categories || [];
+        let categoryString = categories.map((category: { name: any; }) => category.name).join(' & ');
+
+        console.log("Name:", name, "Concatenated Categories: ", categoryString);
+      
+
       const titleTokens = title.split(' ').filter((token: string | any[]) => token.length > 0);
 
       let neededNameSimilarity = false;
       let neededStreetSimilary = false;
       let neededDistanceMatch = false;
+
 
       const matchesGoogle = (formatted_address: string, name: string): boolean => {
         const lowerGoogleAddress = formatted_address.toLowerCase();
@@ -211,7 +224,7 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
          if (titleTokens.length > 8) {
            nameMismatchThreshold = Math.floor(titleTokens.length / 3);
          }
-         else if (titleTokens.length > 5) {
+         else if (titleTokens.length > 4) {
            nameMismatchThreshold = 2;
          }
          else if (titleTokens.length > 2) {
@@ -294,14 +307,22 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
         return finalMatch;
       };
 
+      const address = result.address?.street + ' ' + result.address?.houseNumber;
+      console.log("AddressNihal:", address);
+
       return {
         name: result.title,
+        address: address,
         lat: result.position.lat,
         lng: result.position.lng,
         matchesGoogle: matchesGoogle,
-        neededStreetSimilary: neededStreetSimilary,
+        neededStreetSimilary: false,
+        updateNeededStreetSimilary: () => neededStreetSimilary,
         neededDistanceMatch: false,
-        updateNeededDistanceMatch: () => neededDistanceMatch
+        updateNeededDistanceMatch: () => neededDistanceMatch,
+        neededNameSimilarity: false,
+        updateNeededNameSimilarity: () => neededNameSimilarity,
+        categoryHereType: categoryString
       };
     } catch (error) {
       console.error('Error in searchHereAddress function:', error);
@@ -418,8 +439,12 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
                   lat: hereResult.lat,
                   lng: hereResult.lng,
                   matchesGoogle: matchesGoogleResult,
-                  neededStreetSimilary: hereResult.neededStreetSimilary,
-                  neededDistanceMatch: hereResult.updateNeededDistanceMatch()
+                  neededStreetSimilary: hereResult.updateNeededStreetSimilary(),
+                  neededDistanceMatch: hereResult.updateNeededDistanceMatch(),
+                  neededNameSimilarity: hereResult.updateNeededNameSimilarity(),
+                  address: hereResult.address,
+                  categoryHereType: hereResult.categoryHereType
+
                 };
               }
               return null;
