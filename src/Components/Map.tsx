@@ -1,8 +1,25 @@
 import React, { useEffect, useRef, useState } from 'react';
-import './CSS/map.css';
 import { useNavigate } from 'react-router-dom';
 import { useGridContext } from './GridContext';
 import hereLogo from './HERE_logo.svg.png';
+import {
+    MainContainer,
+    Header,
+    SearchContainer,
+    SearchInput,
+    GridMap,
+    MapContainer,
+    Sidebar,
+    FormGroup,
+    ButtonGroup,
+    Button,
+    Button2,
+    RightSection,
+    CoordinateContainer,
+    BoundingBoxDetails,
+    Label,
+    Input
+  } from './MapStyles';
 
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual API key
@@ -208,7 +225,8 @@ const GridDivisionsMap: React.FC = () => {
                     centers: centers,
                     searchRadius: searchRadius,
                     resultLimit: resultLimit,
-                    placeType: placeType
+                    placeType: placeType,
+                    placeName: placeName
                 }
             });
         } else {
@@ -464,118 +482,115 @@ const GridDivisionsMap: React.FC = () => {
 
 
     return (
-        <>
-            <div className='main'>
-                <nav className='header'>
-                    <p>Benchmarking Places</p>
-                    <div className='search-container'>
-                        <input
-                            type="text"
-                            placeholder="Search place"
-                            ref={searchInputRef}
-                            className='search-input 85px'
-                            required
-                        />
-                    </div>
-                    <img src={hereLogo} className='img2' alt="here" />
-                </nav>
-                <div className='grid-map'>
-                    <div className='map-container'>
-                        <div style={{ width: '100%', height: '800px', border: '1px solid #ccc', borderRadius: '4px' }} ref={mapRef}>
-                            Loading Map...
-                        </div>
-                        <div className='right-section'>
-                            <div className='coordinate-container'>
-                                {boundingBoxCoords.map((coord, index) => (
-                                    <div className='coordinate' key={index}>{coord}</div>
-                                ))}
-                            </div>
-                            <div className='bounding-box-details'>
-                                {boundingBoxDetails.map((detail, index) => (
-                                    <div className='box-detail' key={index}>{detail}</div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    <div className='sidebar'>
-                        <form onSubmit={handleFormSubmit} className='control-panel form-group'>
-                            <label className='label'>Number of Rows :</label>
-                            <input
-                                type="number"
-                                name="M"
-                                value={gridDivisions.M}
-                                onChange={handleGridDivisionsChange}
-                                onKeyPress={handleKeyPress}
-                                required
-                                min="1"
-                            />
-                            <label>Number of Columns :</label>
-                            <input
-                                type="number"
-                                name="N"
-                                value={gridDivisions.N}
-                                onChange={handleGridDivisionsChange}
-                                onKeyPress={handleKeyPress}
-                                required
-                                min="1"
-                            />
-                            <label>Number of (Lat, Lng) (1-20):</label>
-                            <input
-                                type="number"
-                                name="poiCount"
-                                value={poiCount}
-                                onChange={handlePoiCountChange}
-                                onKeyPress={handleKeyPress}
-                                min="1"
-                                max="20"
-                                placeholder="Enter Randon Lat Long count"
-                                required
-                            />
-                            <label>Place Type:</label>
-                            <select
-                                className='typeSelect'
-                                value={placeType.label}
-                                onChange={handlePlaceTypeChange}
-                                required
-                            >
-                                {placeTypeOptions.map(option => (
-                                    <option key={option.label} value={option.label}>{option.label}</option>
-                                ))}
-                            </select>
-                            <label>Search Radius (meters):</label>
-                            <input
-                                type="number"
-                                name="searchRadius"
-                                value={searchRadius}
-                                onChange={handleSearchRadiusChange}
-                                onKeyPress={handleKeyPress}
-                                required
-                                min="1"
-                            />
-
-                            <label>Result Limit (1-60):</label>
-                            <input
-                                type="number"
-                                name="resultLimit"
-                                value={resultLimit}
-                                onChange={handleResultLimitChange}
-                                onKeyPress={handleKeyPress}
-                                required
-                                min="1"
-                                max="60"
-                            />
-                            <div className='button-group'>
-                                <button type="submit" disabled={!isPlaceSelected}>Enter</button>
-                                <button type="button" onClick={handlePageRefresh}>Reset</button>
-                                {enterClicked && <button type="button" className='button2' onClick={handleNearbySearchClick}>Nearby Search</button>}
-                                <button type="button" className='button2' onClick={handleViewRecentReports}>View Recent Reports</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
+        <MainContainer>
+          <Header>
+            <p>Benchmarking Places</p>
+            <SearchContainer>
+              <SearchInput
+                type="text"
+                placeholder="Search place"
+                ref={searchInputRef}
+                className='search-input 85px'
+                required
+              />
+            </SearchContainer>
+            <img src={hereLogo} alt="here" />
+          </Header>
+          <GridMap>
+            <MapContainer>
+              <div style={{ width: '100%', height: '800px', border: '1px solid #ccc', borderRadius: '4px' }} ref={mapRef}>
+                Loading Map...
+              </div>
+              <RightSection>
+                <CoordinateContainer>
+                  {boundingBoxCoords.map((coord, index) => (
+                    <div className='coordinate' key={index}>{coord}</div>
+                  ))}
+                </CoordinateContainer>
+                <BoundingBoxDetails>
+                  {boundingBoxDetails.map((detail, index) => (
+                    <div className='box-detail' key={index}>{detail}</div>
+                  ))}
+                </BoundingBoxDetails>
+              </RightSection>
+            </MapContainer>
+            <Sidebar>
+              <FormGroup as="form" onSubmit={handleFormSubmit}>
+                <Label>Number of Rows :</Label>
+                <Input
+                  type="number"
+                  name="M"
+                  value={gridDivisions.M}
+                  onChange={handleGridDivisionsChange}
+                  onKeyPress={handleKeyPress}
+                  required
+                  min="1"
+                />
+                <Label>Number of Columns :</Label>
+                <Input
+                  type="number"
+                  name="N"
+                  value={gridDivisions.N}
+                  onChange={handleGridDivisionsChange}
+                  onKeyPress={handleKeyPress}
+                  required
+                  min="1"
+                />
+                <Label>Number of (Lat, Lng) (1-20):</Label>
+                <Input
+                  type="number"
+                  name="poiCount"
+                  value={poiCount}
+                  onChange={handlePoiCountChange}
+                  onKeyPress={handleKeyPress}
+                  min="1"
+                  max="20"
+                  placeholder="Enter Random Lat Long count"
+                  required
+                />
+                <Label>Place Type:</Label>
+                <select
+                  className='typeSelect'
+                  value={placeType.label}
+                  onChange={handlePlaceTypeChange}
+                  required
+                >
+                  {placeTypeOptions.map(option => (
+                    <option key={option.label} value={option.label}>{option.label}</option>
+                  ))}
+                </select>
+                <Label>Search Radius (meters):</Label>
+                <Input
+                  type="number"
+                  name="searchRadius"
+                  value={searchRadius}
+                  onChange={handleSearchRadiusChange}
+                  onKeyPress={handleKeyPress}
+                  required
+                  min="1"
+                />
+                <Label>Result Limit (1-60):</Label>
+                <Input
+                  type="number"
+                  name="resultLimit"
+                  value={resultLimit}
+                  onChange={handleResultLimitChange}
+                  onKeyPress={handleKeyPress}
+                  required
+                  min="1"
+                  max="60"
+                />
+                <ButtonGroup>
+                  <Button type="submit" disabled={!isPlaceSelected}>Enter</Button>
+                  <Button type="button" onClick={handlePageRefresh}>Reset</Button>
+                  {enterClicked && <Button2 type="button" onClick={handleNearbySearchClick}>Nearby Search</Button2>}
+                  <Button2 type="button" onClick={handleViewRecentReports}>View Recent Reports</Button2>
+                </ButtonGroup>
+              </FormGroup>
+            </Sidebar>
+          </GridMap>
+        </MainContainer>
+      );
 };
 
 export default GridDivisionsMap;

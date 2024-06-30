@@ -5,6 +5,7 @@ import Map from './Components/Map';
 import NearbySearchPage from './Components/NearbySearchPage';
 import ResultPage from './Components/ResultPage';
 import VisualizationPage from './Components/VisualizationPage';
+import Reportgenerationpage from './Components/ReportGeneration/Reportgenerationpage';
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
             <Route path="/nearby-search" element={<NearbySearchPage />} />
             <Route path="/result-page" element={<ResultPage />} />
             <Route path="/visualization" element={<VisualizationPage />} />
+            <Route path="/report-generation" element={<Reportgenerationpage/>} />
           </Routes>
         </div>
       </Router>
