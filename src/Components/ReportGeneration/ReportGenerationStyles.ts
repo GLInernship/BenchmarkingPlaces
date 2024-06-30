@@ -11,7 +11,6 @@ export const AppContainer = styled.div`
 
 export const ReloadButton = styled.button`
   padding: 10px 20px;
-  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 20px;
@@ -20,6 +19,7 @@ export const ReloadButton = styled.button`
   width: 100px;
   right: 520px;
   top: 70px;
+  background: linear-gradient(to bottom, #A8DEC6 12%, #E0E1A7 100%);
 `;
 
 export const Header = styled.header`
