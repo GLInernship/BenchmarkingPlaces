@@ -7,6 +7,8 @@ import ResultPage from './Components/ResultPage';
 import {VisualizationPage} from './Components/VisualizationPage';
 import Reportgenerationpage from './Components/ReportGeneration/Reportgenerationpage';
 import PlaceDetailsPage from './Components/ReportGeneration/PlaceDetailsPage';
+import { VisualizationPageMatchesGoogle } from './Components/ReportGeneration/VisualizationPageMatchesGoogle';
+import { VisualizationPageStreet } from './Components/ReportGeneration/VisualizationPageStreet';
 
 const App: React.FC = () => {
   return (
@@ -20,6 +22,8 @@ const App: React.FC = () => {
             <Route path="/visualization" element={<VisualizationPage />} />
             <Route path="/report-generation" element={<Reportgenerationpage/>} />
             <Route path="/place/:placeName" element={<PlaceDetailsPage/>} />
+            <Route path="/visualizationmatchesgoogle" element={<VisualizationPageMatchesGoogle/>} />
+            <Route path="/visualizationstreet" element={<VisualizationPageStreet/>} />
           </Routes>
         </div>
       </Router>

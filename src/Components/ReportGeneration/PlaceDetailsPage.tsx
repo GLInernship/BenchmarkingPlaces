@@ -103,7 +103,12 @@ const PlaceDetailsPage: React.FC = () => {
   const passedPlaceName = location.state?.placeName || placeName;
   const [placeDetails, setPlaceDetails] = useState<PlaceDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [matchingData, setMatchingData] = useState<{ matches: number, nonMatches: number }>({ matches: 0, nonMatches: 0 });
+  const [matchingData, setMatchingData] = useState<{
+    matches: number,
+    nonMatches: number,
+    neededStreetSimilarity: number,
+    notNeededStreetSimilarity: number
+  }>({ matches: 0, nonMatches: 0, neededStreetSimilarity: 0, notNeededStreetSimilarity: 0 });
 
   const navigate = useNavigate();
 
@@ -127,7 +132,9 @@ const PlaceDetailsPage: React.FC = () => {
   const calculateMatchingData = (details: PlaceDetails) => {
     let matches = 0;
     let nonMatches = 0;
-
+    let neededStreetSimilarity = 0;
+    let notNeededStreetSimilarity = 0;
+  
     details.results.forEach(result => {
       result.hereBasedOnGoogle.forEach(place => {
         if (place.matchesGoogle) {
@@ -135,14 +142,44 @@ const PlaceDetailsPage: React.FC = () => {
         } else {
           nonMatches++;
         }
+        if (place.neededStreetSimilary) {
+          neededStreetSimilarity++;
+        } else {
+          notNeededStreetSimilarity++;
+        }
       });
     });
-
-    return { matches, nonMatches };
+  
+    return { matches, nonMatches, neededStreetSimilarity, notNeededStreetSimilarity };
   };
 
-  const navigateToVisualization = () => {
-    navigate('/visualization', { state: { matchingData } });
+  const navigateToVisualization1 = () => {
+    const nonMatchingDetails = placeDetails?.results.flatMap(result => 
+      result.hereBasedOnGoogle.filter(place => !place.matchesGoogle)
+    );
+    navigate('/visualizationmatchesgoogle', { 
+      state: { 
+        matchingData,
+        nonMatchingDetails
+      } 
+    });
+  };
+  
+  const navigateToVisualization2 = () => {
+    const neededStreetSimilarityDetails = placeDetails?.results.flatMap(result =>
+      result.hereBasedOnGoogle.filter(place => place.neededStreetSimilary)
+    );
+    const notNeededStreetSimilarityDetails = placeDetails?.results.flatMap(result =>
+      result.hereBasedOnGoogle.filter(place => !place.neededStreetSimilary)
+    );
+    navigate('/visualizationstreet', { 
+      state: { 
+        neededStreetSimilarity: matchingData.neededStreetSimilarity, 
+        notNeededStreetSimilarity: matchingData.notNeededStreetSimilarity, 
+        neededStreetSimilarityDetails,
+        notNeededStreetSimilarityDetails 
+      } 
+    });
   };
 
   if (isLoading) {
@@ -158,9 +195,12 @@ const PlaceDetailsPage: React.FC = () => {
       <Header isMapPage={true} />
       <h1>Search Results</h1>
       <p>Place Name: {placeDetails?.placeName || 'N/A'}</p>
-      <Button onClick={navigateToVisualization}>
-        View Matching Data Visualization
-      </Button>
+      <Button onClick={navigateToVisualization1}>
+  View Matching Data Visualization
+</Button>
+<Button onClick={navigateToVisualization2}>
+  View Street Similarity Visualization
+</Button>
 
       {placeDetails?.results && placeDetails.results.length > 0 ? (
         <StyledTable>
