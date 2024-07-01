@@ -3,6 +3,7 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import Header from '../Header';
 import axios from 'axios';
 import styled from 'styled-components';
+import { API_URL } from '../../constants';
 
 // Styled components
 // Styled components
@@ -57,6 +58,11 @@ const Button = styled.button`
   margin-bottom: 5px;
   background: linear-gradient(to bottom, #A8DEC6 12%, #E0E1A7 100%);
   border-radius: 20px;
+`;
+
+const CostomRow = styled.tr<{ $primary?: boolean; $canBeRed?: boolean; }>`
+  background: ${props => props.$canBeRed ? "#BF4F74" : "white"};
+  color: ${props => props.$canBeRed ? "white" : "green"};
 `;
 
 interface PlaceDetails {
@@ -129,8 +135,7 @@ const PlaceDetailsPage: React.FC = () => {
   useEffect(() => {
     const fetchPlaceDetails = async () => {
       try {
-         const response = await axios.get(`https://j5s9dm7w-9000.inc1.devtunnels.ms/api/place/${passedPlaceName}`);
-       // const response = await axios.get(`http://localhost:9000/api/place/${passedPlaceName}`);
+        const response = await axios.get(`${API_URL}/api/place/${passedPlaceName}`);
         setPlaceDetails(response.data.placeDetails);
         const matchingData = calculateMatchingData(response.data.placeDetails);
         setMatchingData(matchingData);

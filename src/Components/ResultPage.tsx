@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from './Header';
 import styled from 'styled-components';
-
+import { API_URL } from '../constants';
 const ResultPageContainer = styled.div`
   width: 100%;
   overflow-x: auto;
@@ -442,7 +442,7 @@ const ResultPage: React.FC<ResultPageProps> = () => {
 
   const searchGooglePlace = async (name: string, address: string, lat: number, lng: number): Promise<GooglePlaceResult> => {
     try {
-      const response = await axios.get('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/search-google-place', {
+      const response = await axios.get(`${API_URL}/api/search-google-place`, {
         params: { name, address, lat, lng }
       });
       return response.data;
@@ -535,8 +535,8 @@ const ResultPage: React.FC<ResultPageProps> = () => {
         )
       };
   
-      const response = await axios.post('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/save-results', dataToSave);
-   //   const response = await axios.post('http://localhost:9000/api/save-results', dataToSave);
+      const response = await axios.post(`${API_URL}/api/save-results`, dataToSave);
+
       if (response.data.success) {
         alert('Data saved successfully!');
         setIsSaved(true);

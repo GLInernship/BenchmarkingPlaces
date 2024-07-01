@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import styled from 'styled-components';
+import { API_URL } from '../constants';
 
 interface RanLatLons {
   name: string;
@@ -236,7 +237,7 @@ const NearbySearchPage: React.FC = () => {
 
   const handleSaveData = async () => {
     try {
-      const response = await axios.post('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/save-nearby-places', { 
+      const response = await axios.post(`${API_URL}/api/save-nearby-places`, { 
         groupedRLatLons,
         placeType: {
           label: placeType.label,
