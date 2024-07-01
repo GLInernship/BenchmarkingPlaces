@@ -60,10 +60,10 @@ Contributions to improve Benchmarking Places are welcome. Please follow these st
 
 ### Contributors
 - Developed by -
+- Nihal saran das duggirala - nihal.saran@globallogic.com
 - Aashi Chaudhary- aashi.chaudhary@globallogic.com
 - Insha Khan - insha.khan@globallogic.com
 - Muskan Arya - muskan.arya@globallogic.com
-- Nihal saran das duggirala - nihal.saran@globallogic.com
 - Sajal Satsangi - sajal.satsangi@globallogic.com
 - N Shikhar - nakirekanti.shikhar@globallogic.com
 

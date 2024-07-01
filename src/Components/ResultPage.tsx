@@ -237,7 +237,8 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
    // const HERE_API_KEY = 'L5lmAVOde08LJbnbqu3V4-ypjHx3BfDMkkj9JdNbqg4'; // aashi's key
     // const HERE_API_KEY = 'TIGOyh7aNyvOOOhmCm60Yrf7iaFL6lEESPtNYPXCINc'; // insha's key
-     const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q'; // sajal's key
+     //const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q'; // sajal's key
+     const HERE_API_KEY = 'xiNMKXgiyxQg3pzl4vOxd167y8kJEoZ_86SOR1pppSc'; // nihal's key 0
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
 

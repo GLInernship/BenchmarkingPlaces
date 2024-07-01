@@ -9,6 +9,8 @@ import Reportgenerationpage from './Components/ReportGeneration/Reportgeneration
 import PlaceDetailsPage from './Components/ReportGeneration/PlaceDetailsPage';
 import { VisualizationPageMatchesGoogle } from './Components/ReportGeneration/VisualizationPageMatchesGoogle';
 import { VisualizationPageStreet } from './Components/ReportGeneration/VisualizationPageStreet';
+import { VisualizationPageDistance } from './Components/ReportGeneration/VisualizationPageDistance';
+import { VisualizationPageName } from './Components/ReportGeneration/VisualizationPageName';
 
 const App: React.FC = () => {
   return (
@@ -24,6 +26,8 @@ const App: React.FC = () => {
             <Route path="/place/:placeName" element={<PlaceDetailsPage/>} />
             <Route path="/visualizationmatchesgoogle" element={<VisualizationPageMatchesGoogle/>} />
             <Route path="/visualizationstreet" element={<VisualizationPageStreet/>} />
+            <Route path="/visualizationdistance" element={<VisualizationPageDistance/>} />
+            <Route path="/visualizationname" element={<VisualizationPageName/>} />
           </Routes>
         </div>
       </Router>

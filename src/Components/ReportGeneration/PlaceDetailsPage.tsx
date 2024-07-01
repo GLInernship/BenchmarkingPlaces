@@ -107,8 +107,12 @@ const PlaceDetailsPage: React.FC = () => {
     matches: number,
     nonMatches: number,
     neededStreetSimilarity: number,
-    notNeededStreetSimilarity: number
-  }>({ matches: 0, nonMatches: 0, neededStreetSimilarity: 0, notNeededStreetSimilarity: 0 });
+    notNeededStreetSimilarity: number,
+    neededDistanceSimilarity: number,
+    notNeededDistanceSimilarity: number,
+    neededNameSimilarity: number,
+    notNeededNameSimilarity: number
+  }>({ matches: 0, nonMatches: 0, neededStreetSimilarity: 0, notNeededStreetSimilarity: 0, neededDistanceSimilarity: 0, notNeededDistanceSimilarity: 0, neededNameSimilarity: 0, notNeededNameSimilarity: 0 });
 
   const navigate = useNavigate();
 
@@ -134,6 +138,10 @@ const PlaceDetailsPage: React.FC = () => {
     let nonMatches = 0;
     let neededStreetSimilarity = 0;
     let notNeededStreetSimilarity = 0;
+    let neededDistanceSimilarity = 0;
+    let notNeededDistanceSimilarity = 0;
+    let neededNameSimilarity = 0;
+    let notNeededNameSimilarity = 0;
   
     details.results.forEach(result => {
       result.hereBasedOnGoogle.forEach(place => {
@@ -147,13 +155,23 @@ const PlaceDetailsPage: React.FC = () => {
         } else {
           notNeededStreetSimilarity++;
         }
+        if (place.neededDistanceMatch) {
+          neededDistanceSimilarity++;
+        } else {
+          notNeededDistanceSimilarity++;
+        }
+        if (place.neededNameSimilarity) {
+          neededNameSimilarity++;
+        } else {
+          notNeededNameSimilarity++;
+        }
       });
     });
   
-    return { matches, nonMatches, neededStreetSimilarity, notNeededStreetSimilarity };
+    return { matches, nonMatches, neededStreetSimilarity, notNeededStreetSimilarity, neededDistanceSimilarity, notNeededDistanceSimilarity, neededNameSimilarity, notNeededNameSimilarity };
   };
 
-  const navigateToVisualization1 = () => {
+  const navigateToVisualization_GoogleMatches = () => {
     const nonMatchingDetails = placeDetails?.results.flatMap(result => 
       result.hereBasedOnGoogle.filter(place => !place.matchesGoogle)
     );
@@ -165,7 +183,7 @@ const PlaceDetailsPage: React.FC = () => {
     });
   };
   
-  const navigateToVisualization2 = () => {
+  const navigateToVisualization_StreetSimilarity = () => {
     const neededStreetSimilarityDetails = placeDetails?.results.flatMap(result =>
       result.hereBasedOnGoogle.filter(place => place.neededStreetSimilary)
     );
@@ -178,6 +196,40 @@ const PlaceDetailsPage: React.FC = () => {
         notNeededStreetSimilarity: matchingData.notNeededStreetSimilarity, 
         neededStreetSimilarityDetails,
         notNeededStreetSimilarityDetails 
+      } 
+    });
+  };
+
+  const navigateToVisualization_DistanceSimilarity = () => {
+    const neededDistanceDetails = placeDetails?.results.flatMap(result =>
+      result.hereBasedOnGoogle.filter(place => place.neededDistanceMatch)
+    );
+    const notNeededDistanceDetails = placeDetails?.results.flatMap(result =>
+      result.hereBasedOnGoogle.filter(place => !place.neededDistanceMatch)
+    );
+    navigate('/visualizationdistance', { 
+      state: { 
+        neededDistanceSimilarity: matchingData.neededDistanceSimilarity, 
+        notNeededDistanceSimilarity: matchingData.notNeededDistanceSimilarity, 
+        neededDistanceDetails,
+        notNeededDistanceDetails 
+      } 
+    });
+  };
+
+  const navigateToVisualization_NameSimilarity = () => {
+    const neededNameDetails = placeDetails?.results.flatMap(result =>
+      result.hereBasedOnGoogle.filter(place => place.neededNameSimilarity)
+    );
+    const notNeededNameDetails = placeDetails?.results.flatMap(result =>
+      result.hereBasedOnGoogle.filter(place => !place.neededNameSimilarity)
+    );
+    navigate('/visualizationname', { 
+      state: { 
+        neededNameSimilarity: matchingData.neededNameSimilarity, 
+        notNeededNameSimilarity: matchingData.notNeededNameSimilarity, 
+        neededNameDetails,
+        notNeededNameDetails 
       } 
     });
   };
@@ -195,11 +247,17 @@ const PlaceDetailsPage: React.FC = () => {
       <Header isMapPage={true} />
       <h1>Search Results</h1>
       <p>Place Name: {placeDetails?.placeName || 'N/A'}</p>
-      <Button onClick={navigateToVisualization1}>
+      <Button onClick={navigateToVisualization_GoogleMatches}>
   View Matching Data Visualization
 </Button>
-<Button onClick={navigateToVisualization2}>
+<Button onClick={navigateToVisualization_StreetSimilarity}>
   View Street Similarity Visualization
+</Button>
+<Button onClick={navigateToVisualization_DistanceSimilarity}>
+  View Distance Similarity Visualization
+</Button>
+<Button onClick={navigateToVisualization_NameSimilarity}>
+  View Name Similarity Visualization
 </Button>
 
       {placeDetails?.results && placeDetails.results.length > 0 ? (
