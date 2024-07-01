@@ -22,12 +22,14 @@ const TableHeader = styled.th`
   padding: 8px;
   background-color: #f2f2f2;
   text-align: left;
+  height: 80px
 `;
 
 const TableCell = styled.td`
   border: 1px solid black;
   padding: 0;
   vertical-align: top;
+  height: 80px;
 `;
 
 const InnerTable = styled.table`
@@ -40,17 +42,21 @@ const InnerTableHeader = styled.th`
   padding: 4px;
   background-color: #e6e6e6;
   text-align: left;
+  height: 80px;
 `;
 
 const InnerTableCell = styled.td`
   border: 1px solid black;
   padding: 4px;
+  height: 85px;
 `;
 
 const Button = styled.button`
   margin-top: 20px;
   padding: 10px 20px;
   margin-bottom: 5px;
+  background: linear-gradient(to bottom, #A8DEC6 12%, #E0E1A7 100%);
+  border-radius: 20px;
 `;
 
 interface PlaceDetails {
@@ -164,8 +170,8 @@ const PlaceDetailsPage: React.FC = () => {
               <TableHeader>LAT-LNG Coordinates</TableHeader>
               <TableHeader>Google Places API Results</TableHeader>
               <TableHeader>HERE API Results Based on Google Results</TableHeader>
-              <TableHeader>HERE API Results</TableHeader>
-              <TableHeader>Google API Results Based on HERE Results</TableHeader>
+              {/* <TableHeader>HERE API Results</TableHeader>
+              <TableHeader>Google API Results Based on HERE Results</TableHeader> */}
             </tr>
           </thead>
           <tbody>
@@ -227,7 +233,7 @@ const PlaceDetailsPage: React.FC = () => {
                     </tbody>
                   </InnerTable>
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <InnerTable>
                     <thead>
                       <tr>
@@ -268,7 +274,7 @@ const PlaceDetailsPage: React.FC = () => {
                       ))}
                     </tbody>
                   </InnerTable>
-                </TableCell>
+                </TableCell> */}
               </tr>
             ))}
           </tbody>
