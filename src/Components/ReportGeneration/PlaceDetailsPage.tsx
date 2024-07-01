@@ -3,7 +3,7 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import Header from '../Header';
 import axios from 'axios';
 import styled from 'styled-components';
-import { API_URL } from '../../constants';
+import { PROD_API_URL, LOCAL_API_URLL } from '../../constants';
 
 // Styled components
 // Styled components
@@ -135,7 +135,8 @@ const PlaceDetailsPage: React.FC = () => {
   useEffect(() => {
     const fetchPlaceDetails = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/place/${passedPlaceName}`);
+       // const response = await axios.get(`${PROD_API_URL}/api/place/${passedPlaceName}`);
+        const response = await axios.get(`${LOCAL_API_URLL}/api/place/${passedPlaceName}`);
         setPlaceDetails(response.data.placeDetails);
         const matchingData = calculateMatchingData(response.data.placeDetails);
         setMatchingData(matchingData);

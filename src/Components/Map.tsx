@@ -21,10 +21,10 @@ import {
     Input,
     SearchIcon
 } from './MapStyles';
-import { API_URL } from '../constants';
+import { PROD_API_URL, googleNearbySearchAPIKEY } from '../constants';
 
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDoLzY6DBVoUPPMoCNewEnnp3inyXvCkNE'; // Replace with your actual API key
+const GOOGLE_MAPS_API_KEY = googleNearbySearchAPIKEY // Replace with your actual API key
 
 interface GoogleMap extends google.maps.Map { }
 
@@ -458,7 +458,7 @@ const GridDivisionsMap: React.FC = () => {
 
     const saveGridDataToBackend = async (divisionData: any[]) => {
         try {
-            const response = await fetch(`${API_URL}/api/grid-data`, {
+            const response = await fetch(`${PROD_API_URL}/api/grid-data`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

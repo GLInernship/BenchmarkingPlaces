@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import styled from 'styled-components';
-import { API_URL } from '../constants';
+import { PROD_API_URL } from '../constants';
 
 interface RanLatLons {
   name: string;
@@ -62,13 +62,14 @@ const NearbySearchPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataSaved, setDataSaved] = useState(false);
+  const [searchCache, setSearchCache] = useState<Map<string, any>>(new Map());
 
   const location = useLocation();
-  const { 
-    subregion_id: totalDivisions, 
-    centers, 
-    searchRadius: initialSearchRadius, 
-    resultLimit: initialResultLimit, 
+  const {
+    subregion_id: totalDivisions,
+    centers,
+    searchRadius: initialSearchRadius,
+    resultLimit: initialResultLimit,
     placeType,
     placeName // Add this line
   } = location.state as LocationState;
@@ -79,8 +80,8 @@ const NearbySearchPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleNextPage = () => {
-  navigate('/result-page', { state: { groupedRLatLons, placeType, placeName } });
-};
+    navigate('/result-page', { state: { groupedRLatLons, placeType, placeName } });
+  };
 
 
   useEffect(() => {
@@ -89,10 +90,23 @@ const NearbySearchPage: React.FC = () => {
     }
   }, [centers, searchRadius, resultLimit]);
 
+  const removeDuplicatesFromTable = (places: (NearbyPlace | HereNearbyPlace)[]) => {
+    const uniquePlaces = new Map();
+    places.forEach(place => {
+      const key = `${place.name}|${place.lat}|${place.lng}`;
+      if (!uniquePlaces.has(key)) {
+        uniquePlaces.set(key, place);
+      }
+    });
+    return Array.from(uniquePlaces.values());
+  };
+
   const searchNearbyPlaces = async () => {
     setLoading(true);
     setError(null);
     const groupedResults: GroupedRLatLon[] = [];
+    const allUniqueResults = new Set<string>();
+
     try {
       const mapElement = document.createElement('div');
       const map = new google.maps.Map(mapElement);
@@ -110,7 +124,31 @@ const NearbySearchPage: React.FC = () => {
               searchNearbyPlace(service, ranLatLons),
               searchHereNearbyPlace(ranLatLons)
             ]);
-            return { ranLatLons, nearbyPlaces, hereNearbyPlaces };
+
+            // Filter out duplicates across all tables
+            const uniqueNearbyPlaces = nearbyPlaces.filter(place => {
+              const key = `${place.name}|${place.lat}|${place.lng}`;
+              if (!allUniqueResults.has(key)) {
+                allUniqueResults.add(key);
+                return true;
+              }
+              return false;
+            });
+
+            const uniqueHereNearbyPlaces = hereNearbyPlaces.filter(place => {
+              const key = `${place.name}|${place.lat}|${place.lng}`;
+              if (!allUniqueResults.has(key)) {
+                allUniqueResults.add(key);
+                return true;
+              }
+              return false;
+            });
+
+            return {
+              ranLatLons,
+              nearbyPlaces: uniqueNearbyPlaces,
+              hereNearbyPlaces: uniqueHereNearbyPlaces
+            };
           } catch (ranLatLonsError) {
             console.error('Error searching for ranLatLons:', ranLatLons, ranLatLonsError);
             return { ranLatLons, nearbyPlaces: [], hereNearbyPlaces: [] };
@@ -124,6 +162,7 @@ const NearbySearchPage: React.FC = () => {
           ranLatLonss: ranLatLonssWithNearbyPlaces
         });
       }
+
       setGroupedRLatLons(groupedResults);
     } catch (error: unknown) {
       console.error('Error in searchNearbyPlaces:', error);
@@ -210,7 +249,7 @@ const NearbySearchPage: React.FC = () => {
               }));
               results.push(...nearbyPlaces);
 
-              console.log('Google Response-',response);
+              console.log('Google Response-', response);
 
               if (pagination && pagination.hasNextPage && results.length < resultLimit) {
                 pagination.nextPage();
@@ -237,7 +276,7 @@ const NearbySearchPage: React.FC = () => {
 
   const handleSaveData = async () => {
     try {
-      const response = await axios.post(`${API_URL}/api/save-nearby-places`, { 
+      const response = await axios.post(`${PROD_API_URL}/api/save-nearby-places`, { 
         groupedRLatLons,
         placeType: {
           label: placeType.label,
@@ -255,7 +294,7 @@ const NearbySearchPage: React.FC = () => {
     }
   };
 
-  
+
 
   return (
     <Container>
@@ -281,7 +320,7 @@ const NearbySearchPage: React.FC = () => {
                 <TableHeader>Sub-Region</TableHeader>
                 <TableHeader>LAT-LNG Coordinates</TableHeader>
                 <TableHeader>Google Places API Results</TableHeader>
-                <TableHeader>HERE API Results</TableHeader>
+                {/* <TableHeader>HERE API Results</TableHeader> */}
               </tr>
             </thead>
             <tbody>
@@ -324,7 +363,7 @@ const NearbySearchPage: React.FC = () => {
                           </tbody>
                         </SubTable>
                       </TableCell>
-                      <TableCell>
+                      {/* <TableCell>
                         <SubTable>
                           <thead>
                             <tr>
@@ -349,8 +388,8 @@ const NearbySearchPage: React.FC = () => {
                               </tr>
                             )}
                           </tbody>
-                        </SubTable>
-                      </TableCell>
+                        </SubTable> 
+                      </TableCell> */}
                     </TableRow>
                   </React.Fragment>
                 ))

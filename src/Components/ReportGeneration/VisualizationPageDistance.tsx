@@ -245,7 +245,7 @@ export const VisualizationPageDistance: React.FC<VisualizationPageProps> = () =>
       </div>
       <div style={{ width: '100%', maxWidth: '1000px', margin: '20px auto' }}>
       <h2 style={{ textAlign: 'center' }}>Needed Distance Similarity Details</h2>
-      {neededDistanceDetails.length === 0 ? (
+     
       <Table>
         <thead>
           <tr>
@@ -274,15 +274,6 @@ export const VisualizationPageDistance: React.FC<VisualizationPageProps> = () =>
           ))}
         </tbody>
       </Table>
-      ) : (
-        <Table>
-            <thead>
-              <tr>
-                <Th>No Needed Distance Match Details</Th>
-              </tr>
-            </thead>
-          </Table>
-      )}
     </div>
     </div>
   );

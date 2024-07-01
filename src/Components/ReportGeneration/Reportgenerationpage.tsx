@@ -14,7 +14,8 @@ import {
   PlaceLocation,
 } from './ReportGenerationStyles'; // Adjust the import path as necessary
 import Headerr from '../Header';
-import { API_URL } from '../../constants';
+import { PROD_API_URL } from '../../constants';
+import { LOCAL_API_URLL } from '../../constants';
 
 interface Place {
   placeName: string;
@@ -49,8 +50,8 @@ const Reportgenerationpage: React.FC = () => {
 
   const fetchPlaces = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/get-results`);
-    //  const response = await axios.get('http://localhost:9000/api/get-results');
+      const response = await axios.get(`${LOCAL_API_URLL}/api/get-results`);
+    //  const response = await axios.get(`${LOCAL_API_URLL}/api/get-results`);
       setPlaces(response.data);
       localStorage.setItem('places', JSON.stringify(response.data)); // Store places in local storage
     } catch (error) {
