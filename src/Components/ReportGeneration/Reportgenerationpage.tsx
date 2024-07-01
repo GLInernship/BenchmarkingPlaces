@@ -50,7 +50,7 @@ const Reportgenerationpage: React.FC = () => {
 
   const fetchPlaces = async () => {
     try {
-      const response = await axios.get(`${LOCAL_API_URLL}/api/get-results`);
+      const response = await axios.get(`${PROD_API_URL}/api/get-results`);
     //  const response = await axios.get(`${LOCAL_API_URLL}/api/get-results`);
       setPlaces(response.data);
       localStorage.setItem('places', JSON.stringify(response.data)); // Store places in local storage
