@@ -251,13 +251,13 @@ const PlaceDetailsPage: React.FC = () => {
   View Matching Data Visualization
 </Button>
 <Button onClick={navigateToVisualization_StreetSimilarity}>
-  View Street Similarity Visualization
+  Street Similarity Visualization
 </Button>
 <Button onClick={navigateToVisualization_DistanceSimilarity}>
-  View Distance Similarity Visualization
+  Distance Visualization
 </Button>
 <Button onClick={navigateToVisualization_NameSimilarity}>
-  View Name Similarity Visualization
+  Name Visualization 
 </Button>
 
       {placeDetails?.results && placeDetails.results.length > 0 ? (
