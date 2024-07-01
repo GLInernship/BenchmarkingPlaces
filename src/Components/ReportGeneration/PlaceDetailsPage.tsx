@@ -14,7 +14,8 @@ const Container = styled.div`
 `;
 
 const StyledTable = styled.table`
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
 `;
 
@@ -23,14 +24,25 @@ const TableHeader = styled.th`
   padding: 8px;
   background-color: #f2f2f2;
   text-align: left;
-  height: 80px
+  height: 80px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 `;
+
+const TableWrapper = styled.div`
+  max-height: calc(150vh - 0px); // Adjust this value as needed
+  overflow-y: auto;
+  margin-top: 20px;
+`;
+
 
 const TableCell = styled.td`
   border: 1px solid black;
   padding: 0;
   vertical-align: top;
   height: 80px;
+  position: relative;
 `;
 
 const InnerTable = styled.table`
@@ -44,12 +56,22 @@ const InnerTableHeader = styled.th`
   background-color: #e6e6e6;
   text-align: left;
   height: 80px;
+  position: sticky;
+  top: 80px; // This should be the same as the height of the outer TableHeader
+  z-index: 9;
 `;
 
-const InnerTableCell = styled.td`
+const InnerTableCell = styled.td<{ $isHighlighted?: boolean; $isYellow?: boolean; $isLightBlue?: boolean; $isLightGreen?: boolean }>`
   border: 1px solid black;
   padding: 4px;
   height: 85px;
+  background-color: ${props => {
+    if (props.$isYellow) return 'yellow';
+    if (props.$isHighlighted) return '#FFB6C1';
+    if (props.$isLightBlue) return 'lightblue';
+    if (props.$isLightGreen) return 'lightgreen';
+    return 'inherit';
+  }};
 `;
 
 const Button = styled.button`
@@ -136,7 +158,7 @@ const PlaceDetailsPage: React.FC = () => {
     const fetchPlaceDetails = async () => {
       try {
         const response = await axios.get(`${PROD_API_URL}/api/place/${passedPlaceName}`);
-      //  const response = await axios.get(`${LOCAL_API_URLL}/api/place/${passedPlaceName}`);
+        //  const response = await axios.get(`${LOCAL_API_URLL}/api/place/${passedPlaceName}`);
         setPlaceDetails(response.data.placeDetails);
         const matchingData = calculateMatchingData(response.data.placeDetails);
         setMatchingData(matchingData);
@@ -299,128 +321,92 @@ const PlaceDetailsPage: React.FC = () => {
       </Button>
 
       {placeDetails?.results && placeDetails.results.length > 0 ? (
-        <StyledTable>
-          <thead>
-            <tr>
-              <TableHeader>Sub-Region</TableHeader>
-              <TableHeader>LAT-LNG Coordinates</TableHeader>
-              <TableHeader>Google Places API Results</TableHeader>
-              <TableHeader>HERE API Results Based on Google Results</TableHeader>
-              {/* <TableHeader>HERE API Results</TableHeader>
-              <TableHeader>Google API Results Based on HERE Results</TableHeader> */}
-            </tr>
-          </thead>
-          <tbody>
-            {placeDetails.results.map((result, index) => (
-              <tr key={index}>
-                <TableCell>{result.subRegion}</TableCell>
-                <TableCell>
-                  ({result.latLng.lat.toFixed(6)}, {result.latLng.lng.toFixed(6)})
-                </TableCell>
-                <TableCell>
-                  <InnerTable>
-                    <thead>
-                      <tr>
-                        <InnerTableHeader>Index</InnerTableHeader>
-                        <InnerTableHeader>Name</InnerTableHeader>
-                        <InnerTableHeader>Type</InnerTableHeader>
-                        <InnerTableHeader>Address</InnerTableHeader>
-                        <InnerTableHeader>Coordinates</InnerTableHeader>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {result.googlePlaces.map((place) => (
-                        <tr key={place.index}>
-                          <InnerTableCell>{place.index}</InnerTableCell>
-                          <InnerTableCell>{place.name}</InnerTableCell>
-                          <InnerTableCell>{place.types.join(', ')}</InnerTableCell>
-                          <InnerTableCell>{place.formatted_address}</InnerTableCell>
-                          <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </InnerTable>
-                </TableCell>
-                <TableCell>
-                  <InnerTable>
-                    <thead>
-                      <tr>
-                        <InnerTableHeader>Index</InnerTableHeader>
-                        <InnerTableHeader>Name</InnerTableHeader>
-                        <InnerTableHeader>Type</InnerTableHeader>
-                        <InnerTableHeader>Address</InnerTableHeader>
-                        <InnerTableHeader>Coordinates</InnerTableHeader>
-                        <InnerTableHeader>Matches Google</InnerTableHeader>
-                        <InnerTableHeader>Needed Street Similarity</InnerTableHeader>
-                        <InnerTableHeader>Needed Distance Match</InnerTableHeader>
-                        <InnerTableHeader>Needed Name Match</InnerTableHeader>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {result.hereBasedOnGoogle.map((place) => (
-                        <tr key={place.index}>
-                          <InnerTableCell>{place.index}</InnerTableCell>
-                          <InnerTableCell>{place.name}</InnerTableCell>
-                          <InnerTableCell>{place.categoryHereType}</InnerTableCell>
-                          <InnerTableCell>{place.address}</InnerTableCell>
-                          <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
-                          <InnerTableCell>{place.matchesGoogle ? 'Yes' : 'No'}</InnerTableCell>
-                          <InnerTableCell>{place.neededStreetSimilary ? 'Yes' : 'No'}</InnerTableCell>
-                          <InnerTableCell>{place.neededDistanceMatch ? 'Yes' : 'No'}</InnerTableCell>
-                          <InnerTableCell>{place.neededNameSimilarity ? 'Yes' : 'No'}</InnerTableCell>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </InnerTable>
-                </TableCell>
-                {/* <TableCell>
-                  <InnerTable>
-                    <thead>
-                      <tr>
-                      <InnerTableHeader>Index</InnerTableHeader>
-                        <InnerTableHeader>Name</InnerTableHeader>
-                        <InnerTableHeader>Type</InnerTableHeader>
-                        <InnerTableHeader>Address</InnerTableHeader>
-                        <InnerTableHeader>Coordinates</InnerTableHeader>
-                      </tr>
-                    </thead>
-                    <tbody>
-                     {result.herePlaces.map((place) => (
-                        <tr key={place.index}>
-                          <InnerTableCell>{place.index}</InnerTableCell>
-                          <InnerTableCell>{place.name}</InnerTableCell>
-                          <InnerTableCell>{place.categoryType}</InnerTableCell>
-                          <InnerTableCell>{place.address}</InnerTableCell>
-                          <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </InnerTable>
-                </TableCell>
-                <TableCell>
-                  <InnerTable>
-                    <thead>
-                      <tr>
-                         <InnerTableHeader>Index</InnerTableHeader>
-                        <InnerTableHeader>Name</InnerTableHeader>
-                        <InnerTableHeader>Coordinates</InnerTableHeader>
-                      </tr>
-                    </thead>
-                    <tbody>
-                       {result.googleBasedOnHere.map((place) => (
-                        <tr key={place.index}>
-                          <InnerTableCell>{place.index}</InnerTableCell>
-                          <InnerTableCell>{place.name}</InnerTableCell>
-                          <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </InnerTable>
-                </TableCell> */}
+        <TableWrapper>
+          <StyledTable>
+            <thead>
+              <tr>
+                <TableHeader>Sub-Region</TableHeader>
+                <TableHeader>LAT-LNG Coordinates</TableHeader>
+                <TableHeader>Google Places API Results</TableHeader>
+                <TableHeader>HERE API Results Based on Google Results</TableHeader>
               </tr>
-            ))}
-          </tbody>
-        </StyledTable>
+            </thead>
+            <tbody>
+              {placeDetails.results.map((result, index) => (
+                <tr key={index}>
+                  <TableCell>{result.subRegion}</TableCell>
+                  <TableCell>
+                    ({result.latLng.lat.toFixed(6)}, {result.latLng.lng.toFixed(6)})
+                  </TableCell>
+                  <TableCell>
+                    <InnerTable>
+                      <thead>
+                        <tr>
+                          <InnerTableHeader>Index</InnerTableHeader>
+                          <InnerTableHeader>Name</InnerTableHeader>
+                          <InnerTableHeader>Type</InnerTableHeader>
+                          <InnerTableHeader>Address</InnerTableHeader>
+                          <InnerTableHeader>Coordinates</InnerTableHeader>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.googlePlaces.map((place) => (
+                          <tr key={place.index}>
+                            <InnerTableCell>{place.index}</InnerTableCell>
+                            <InnerTableCell>{place.name}</InnerTableCell>
+                            <InnerTableCell>{place.types.join(', ')}</InnerTableCell>
+                            <InnerTableCell>{place.formatted_address}</InnerTableCell>
+                            <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </InnerTable>
+                  </TableCell>
+                  <TableCell>
+                    <InnerTable>
+                      <thead>
+                        <tr>
+                          <InnerTableHeader>Index</InnerTableHeader>
+                          <InnerTableHeader>Name</InnerTableHeader>
+                          <InnerTableHeader>Type</InnerTableHeader>
+                          <InnerTableHeader>Address</InnerTableHeader>
+                          <InnerTableHeader>Coordinates</InnerTableHeader>
+                          <InnerTableHeader>Found in Here Data</InnerTableHeader>
+                          <InnerTableHeader>Streets Nonindentical</InnerTableHeader>
+                          <InnerTableHeader>Used Distance Match</InnerTableHeader>
+                          <InnerTableHeader>Possible Naming Anomaly</InnerTableHeader>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.hereBasedOnGoogle.map((place) => (
+                          <tr key={place.index}>
+                            <InnerTableCell>{place.index}</InnerTableCell>
+                            <InnerTableCell>{place.name}</InnerTableCell>
+                            <InnerTableCell>{place.categoryHereType}</InnerTableCell>
+                            <InnerTableCell>{place.address}</InnerTableCell>
+                            <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
+                            <InnerTableCell $isHighlighted={!place.matchesGoogle}>
+                              {place.matchesGoogle ? 'Yes' : 'No'}
+                            </InnerTableCell>
+                            <InnerTableCell $isYellow={place.neededStreetSimilary}>
+                              {place.neededStreetSimilary ? 'Yes' : 'No'}
+                            </InnerTableCell>
+                            <InnerTableCell $isLightBlue={place.neededDistanceMatch}>
+                              {place.neededDistanceMatch ? 'Yes' : 'No'}
+                            </InnerTableCell>
+                            <InnerTableCell $isLightGreen={place.neededNameSimilarity}>
+                              {place.neededNameSimilarity ? 'Yes' : 'No'}
+                            </InnerTableCell>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </InnerTable>
+                  </TableCell>
+                </tr>
+              ))}
+            </tbody>
+          </StyledTable>
+        </TableWrapper>
       ) : (
         <p>No results available</p>
       )}
