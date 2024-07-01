@@ -23,14 +23,22 @@ const Td = styled.td`
   padding: 8px;
 `;
 
+interface GooglePlace {
+  name: string;
+  types: string[];
+  formatted_address: string;
+  lat: number;
+  lng: number;
+}
 
-interface VisualizationPageProps {}
+
+interface VisualizationPageProps { }
 
 export const VisualizationPageMatchesGoogle: React.FC<VisualizationPageProps> = () => {
   // ... component code ...
 
   const location = useLocation();
-  const { matchingData, nonMatchingDetails } = location.state as { 
+  const { matchingData, nonMatchingDetails } = location.state as {
     matchingData: { matches: number, nonMatches: number },
     nonMatchingDetails: Array<{
       name: string;
@@ -38,6 +46,7 @@ export const VisualizationPageMatchesGoogle: React.FC<VisualizationPageProps> = 
       address: string;
       lat: number;
       lng: number;
+      googlePlace: GooglePlace;
     }>
   };
   const barChartRef = useRef<SVGSVGElement | null>(null);
@@ -76,10 +85,10 @@ export const VisualizationPageMatchesGoogle: React.FC<VisualizationPageProps> = 
       .attr('width', width)
       .attr('height', height);
 
-      const color = {
-        matches: '#E0E1A7',
-        nonMatches: '#A8DEC6'
-      };
+    const color = {
+      matches: '#E0E1A7',
+      nonMatches: '#A8DEC6'
+    };
 
     const data = [
       { category: 'Matches', value: matchingData.matches },
@@ -198,9 +207,9 @@ export const VisualizationPageMatchesGoogle: React.FC<VisualizationPageProps> = 
         alignItems: 'center',
         justifyContent: 'space-between'
       }}>
-        <img 
+        <img
           src={hereLogo}
-          alt="HERE Logo" 
+          alt="HERE Logo"
           style={{
             height: '70px',
             marginLeft: '20px',
@@ -232,13 +241,18 @@ export const VisualizationPageMatchesGoogle: React.FC<VisualizationPageProps> = 
       </div>
       <div style={{ width: '100%', maxWidth: '1000px', margin: '20px auto' }}>
         <h2 style={{ textAlign: 'center' }}>Non-Matching Details</h2>
+        {matchingData.nonMatches === 0 && <p style={{ textAlign: 'center' }}>No non-matching details found</p>}
         <Table>
           <thead>
             <tr>
-              <Th>Name</Th>
-              <Th>Category Type</Th>
-              <Th>Address</Th>
-              <Th>Coordinates</Th>
+              <Th>HERE Name</Th>
+              <Th>HERE Category Type</Th>
+              <Th>HERE Address</Th>
+              <Th>HERE Coordinates</Th>
+              <Th>Google Name</Th>
+              <Th>Google Types</Th>
+              <Th>Google Address</Th>
+              <Th>Google Coordinates</Th>
             </tr>
           </thead>
           <tbody>
@@ -248,6 +262,10 @@ export const VisualizationPageMatchesGoogle: React.FC<VisualizationPageProps> = 
                 <Td>{place.categoryHereType}</Td>
                 <Td>{place.address}</Td>
                 <Td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</Td>
+                <Td>{place.googlePlace.name}</Td>
+                <Td>{place.googlePlace.types.join(', ')}</Td>
+                <Td>{place.googlePlace.formatted_address}</Td>
+                <Td>({place.googlePlace.lat.toFixed(6)}, {place.googlePlace.lng.toFixed(6)})</Td>
               </tr>
             ))}
           </tbody>

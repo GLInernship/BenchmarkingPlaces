@@ -22,12 +22,20 @@ const Td = styled.td`
   padding: 8px;
 `;
 
-interface VisualizationPageProps {}
+interface GooglePlace {
+  name: string;
+  types: string[];
+  formatted_address: string;
+  lat: number;
+  lng: number;
+}
+
+interface VisualizationPageProps { }
 
 export const VisualizationPageName: React.FC<VisualizationPageProps> = () => {
   const location = useLocation();
-  const { neededNameSimilarity, notNeededNameSimilarity, neededNameDetails, notNeededNameDetails } = location.state as { 
-    neededNameSimilarity: number, 
+  const { neededNameSimilarity, notNeededNameSimilarity, neededNameDetails, notNeededNameDetails } = location.state as {
+    neededNameSimilarity: number,
     notNeededNameSimilarity: number,
     neededNameDetails: Array<{
       name: string;
@@ -35,6 +43,7 @@ export const VisualizationPageName: React.FC<VisualizationPageProps> = () => {
       address: string;
       lat: number;
       lng: number;
+      googlePlace: GooglePlace;
     }>,
     notNeededNameDetails: Array<{
       name: string;
@@ -42,6 +51,7 @@ export const VisualizationPageName: React.FC<VisualizationPageProps> = () => {
       address: string;
       lat: number;
       lng: number;
+      googlePlace: GooglePlace;
     }>
   };
   const barChartRef = useRef<SVGSVGElement | null>(null);
@@ -201,9 +211,9 @@ export const VisualizationPageName: React.FC<VisualizationPageProps> = () => {
         alignItems: 'center',
         justifyContent: 'space-between'
       }}>
-        <img 
+        <img
           src={hereLogo}
-          alt="HERE Logo" 
+          alt="HERE Logo"
           style={{
             height: '70px',
             marginLeft: '20px',
@@ -235,26 +245,44 @@ export const VisualizationPageName: React.FC<VisualizationPageProps> = () => {
       </div>
       <div style={{ width: '100%', maxWidth: '1000px', margin: '20px auto' }}>
         <h2 style={{ textAlign: 'center' }}>Needed Name Similarity Details</h2>
-        <Table>
-          <thead>
-            <tr>
-              <Th>Name</Th>
-              <Th>Category Type</Th>
-              <Th>Address(Street+House Number)</Th>
-              <Th>Coordinates</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {neededNameDetails.map((place, index) => (
-              <tr key={index}>
-                <Td>{place.name}</Td>
-                <Td>{place.categoryHereType}</Td>
-                <Td>{place.address}</Td>
-                <Td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</Td>
+        {neededNameDetails.length > 0 ? (
+          <Table>
+            <thead>
+              <tr>
+                <Th>HERE Name</Th>
+                <Th>HERE Category Type</Th>
+                <Th>HERE Address</Th>
+                <Th>HERE Coordinates</Th>
+                <Th>Google Name</Th>
+                <Th>Google Types</Th>
+                <Th>Google Address</Th>
+                <Th>Google Coordinates</Th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {neededNameDetails.map((place, index) => (
+                <tr key={index}>
+                  <Td>{place.name}</Td>
+                  <Td>{place.categoryHereType}</Td>
+                  <Td>{place.address}</Td>
+                  <Td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</Td>
+                  <Td>{place.googlePlace.name}</Td>
+                  <Td>{place.googlePlace.types.join(', ')}</Td>
+                  <Td>{place.googlePlace.formatted_address}</Td>
+                  <Td>({place.googlePlace.lat.toFixed(6)}, {place.googlePlace.lng.toFixed(6)})</Td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        ) : (
+          <Table>
+            <thead>
+              <tr>
+                <Th>No Needed Street Similarity Details</Th>
+              </tr>
+            </thead>
+          </Table>
+        )}
       </div>
     </div>
   );

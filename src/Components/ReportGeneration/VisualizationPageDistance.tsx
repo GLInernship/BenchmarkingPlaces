@@ -22,6 +22,14 @@ const Td = styled.td`
   padding: 8px;
 `;
 
+interface GooglePlace {
+  name: string;
+  types: string[];
+  formatted_address: string;
+  lat: number;
+  lng: number;
+}
+
 interface VisualizationPageProps {}
 
 export const VisualizationPageDistance: React.FC<VisualizationPageProps> = () => {
@@ -35,6 +43,7 @@ export const VisualizationPageDistance: React.FC<VisualizationPageProps> = () =>
       address: string;
       lat: number;
       lng: number;
+      googlePlace: GooglePlace;
     }>,
     notNeededDistanceDetails: Array<{
       name: string;
@@ -42,6 +51,7 @@ export const VisualizationPageDistance: React.FC<VisualizationPageProps> = () =>
       address: string;
       lat: number;
       lng: number;
+      googlePlace: GooglePlace;
     }>
   };
   const barChartRef = useRef<SVGSVGElement | null>(null);
@@ -234,28 +244,46 @@ export const VisualizationPageDistance: React.FC<VisualizationPageProps> = () =>
         <svg ref={pieChartRef} style={{ width: '100%', height: 'auto' }}></svg>
       </div>
       <div style={{ width: '100%', maxWidth: '1000px', margin: '20px auto' }}>
-        <h2 style={{ textAlign: 'center' }}>Needed Distance Similarity Details</h2>
-        <Table>
-          <thead>
-            <tr>
-              <Th>Name</Th>
-              <Th>Category Type</Th>
-              <Th>Address(Street+House Number)</Th>
-              <Th>Coordinates</Th>
+      <h2 style={{ textAlign: 'center' }}>Needed Distance Similarity Details</h2>
+      {neededDistanceDetails.length === 0 ? (
+      <Table>
+        <thead>
+          <tr>
+            <Th>HERE Name</Th>
+            <Th>HERE Category Type</Th>
+            <Th>HERE Address</Th>
+            <Th>HERE Coordinates</Th>
+            <Th>Google Name</Th>
+            <Th>Google Types</Th>
+            <Th>Google Address</Th>
+            <Th>Google Coordinates</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {neededDistanceDetails.map((place, index) => (
+            <tr key={index}>
+              <Td>{place.name}</Td>
+              <Td>{place.categoryHereType}</Td>
+              <Td>{place.address}</Td>
+              <Td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</Td>
+              <Td>{place.googlePlace.name}</Td>
+              <Td>{place.googlePlace.types.join(', ')}</Td>
+              <Td>{place.googlePlace.formatted_address}</Td>
+              <Td>({place.googlePlace.lat.toFixed(6)}, {place.googlePlace.lng.toFixed(6)})</Td>
             </tr>
-          </thead>
-          <tbody>
-            {neededDistanceDetails.map((place, index) => (
-              <tr key={index}>
-                <Td>{place.name}</Td>
-                <Td>{place.categoryHereType}</Td>
-                <Td>{place.address}</Td>
-                <Td>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</Td>
+          ))}
+        </tbody>
+      </Table>
+      ) : (
+        <Table>
+            <thead>
+              <tr>
+                <Th>No Needed Distance Match Details</Th>
               </tr>
-            ))}
-          </tbody>
-        </Table>
-      </div>
+            </thead>
+          </Table>
+      )}
+    </div>
     </div>
   );
 };

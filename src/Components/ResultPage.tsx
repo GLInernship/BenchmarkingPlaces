@@ -144,7 +144,7 @@ interface GoogleGeocodingState {
 
 const ResultPage: React.FC<ResultPageProps> = () => {
   const location = useLocation();
-const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLatLons: GroupedRLatLon[], placeType: PlaceType, placeName: string };
+  const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLatLons: GroupedRLatLon[], placeType: PlaceType, placeName: string };
   const [hereAddressResults, setHereAddressResults] = useState<{ [key: string]: HereAddressSearchState }>({});
   const [googleGeocodingResults, setGoogleGeocodingResults] = useState<{ [key: string]: GoogleGeocodingState }>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -235,10 +235,10 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
   }, [groupedRLatLons]);
 
   const searchHereAddress = async (name: string, address: string, lat: number, lng: number): Promise<HereAddressSearchResult> => {
-   // const HERE_API_KEY = 'L5lmAVOde08LJbnbqu3V4-ypjHx3BfDMkkj9JdNbqg4'; // aashi's key
+    const HERE_API_KEY = 'L5lmAVOde08LJbnbqu3V4-ypjHx3BfDMkkj9JdNbqg4'; // aashi's key
     // const HERE_API_KEY = 'TIGOyh7aNyvOOOhmCm60Yrf7iaFL6lEESPtNYPXCINc'; // insha's key
-     //const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q'; // sajal's key
-     const HERE_API_KEY = 'xiNMKXgiyxQg3pzl4vOxd167y8kJEoZ_86SOR1pppSc'; // nihal's key 0
+    //const HERE_API_KEY = 'JPjlc6mdrVXLZ45JQr-55TyaSChZcQL6CuIvU50UJ7Q'; // sajal's key
+   // const HERE_API_KEY = 'xiNMKXgiyxQg3pzl4vOxd167y8kJEoZ_86SOR1pppSc'; // nihal's key 0
     const encodedQuery = encodeURIComponent(`${name}, ${address}`);
     const url = `https://discover.search.hereapi.com/v1/discover?q=${encodedQuery}&at=${lat},${lng}&apiKey=${HERE_API_KEY}`;
 
@@ -253,10 +253,10 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
       const houseNumber = result.address?.houseNumber?.toLowerCase().replace(/[^\w\s]/g, ' ') || '';
       let title = result.title.toLowerCase().replace(/\u00DF/g, 'ss').replace(/[.,-;:"&()]/g, ' ').replace(/[']/g, '');
       const categories = result.categories || [];
-        let categoryString = categories.map((category: { name: any; }) => category.name).join(' & ');
+      let categoryString = categories.map((category: { name: any; }) => category.name).join(' & ');
 
-        console.log("Name:", name, "Concatenated Categories: ", categoryString);
-      
+      console.log("Name:", name, "Concatenated Categories: ", categoryString);
+
 
       const titleTokens = title.split(' ').filter((token: string | any[]) => token.length > 0);
 
@@ -268,41 +268,40 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
       const matchesGoogle = (formatted_address: string, name: string): boolean => {
         const lowerGoogleAddress = formatted_address.toLowerCase();
         const lowerGoogleName = name.toLowerCase().replace(/[.,-;:"&()]/g, ' ').replace(/[']/g, '');
-        
+
         let nameMatches = false;
         let addressMatches = false;
         let streetMatches = false;
         let distanceMatches = false;
 
-         let nameMatchCount = 0;
+        let nameMatchCount = 0;
 
-         titleTokens.forEach((token: string) => {
-           if (lowerGoogleName.includes(token)) {  
-             nameMatchCount++;
-           }
-         }
-         );
- 
-         // Set the allowed number of name token mismatches based on the word count of the (Here) name
-         let nameMismatchThreshold = 0;
+        titleTokens.forEach((token: string) => {
+          if (lowerGoogleName.includes(token)) {
+            nameMatchCount++;
+          }
+        }
+        );
 
-         if (titleTokens.length > 8) {
-           nameMismatchThreshold = Math.floor(titleTokens.length / 3);
-         }
-         else if (titleTokens.length > 4) {
-           nameMismatchThreshold = 2;
-         }
-         else if (titleTokens.length > 2) {
-           nameMismatchThreshold = 1;
-         }
-         
+        // Set the allowed number of name token mismatches based on the word count of the (Here) name
+        let nameMismatchThreshold = 0;
+
+        if (titleTokens.length > 8) {
+          nameMismatchThreshold = Math.floor(titleTokens.length / 3);
+        }
+        else if (titleTokens.length > 4) {
+          nameMismatchThreshold = 2;
+        }
+        else if (titleTokens.length > 2) {
+          nameMismatchThreshold = 1;
+        }
+
         nameMatches = (titleTokens.length - nameMatchCount) <= nameMismatchThreshold;
         // If not an exact match, log it as a similarity match
         neededNameSimilarity = !(titleTokens.length == nameMatchCount);
 
         // If we get a name match, proceed with other checks. Else discard this result
-        if (nameMatches)
-        {
+        if (nameMatches) {
           streetMatches = street && lowerGoogleAddress.includes(street);
 
           // If street doesn't match exactly, check for similarity (ie. spelling errors)
@@ -319,12 +318,12 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
         }
 
         let finalMatch = nameMatches;
-        
+
         if (finalMatch) {
 
           //if name matches but address doesn't, check for distance match
           if (!addressMatches) {
-            
+
             distanceMatches = checkForDistanceThreshold(lat, lng, result.position.lat, result.position.lng);
             finalMatch = distanceMatches && finalMatch;
 
@@ -367,7 +366,7 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
           "similarityRequirements", similarityRequirements,
           "matchesgoogle", matchesGoogle,
         );
-        
+
 
         return finalMatch;
       };
@@ -485,45 +484,59 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
     try {
       const dataToSave = {
         placeName: placeName,
-        placeType: placeType, // Add this line to include placeType
+        placeType: placeType,
         results: groupedRLatLons.flatMap(group =>
-          group.ranLatLonss.map(ranLatLonsData => ({
-            subRegion: group.subregion_id,
-            latLng: {
-              lat: ranLatLonsData.ranLatLons.lat,
-              lng: ranLatLonsData.ranLatLons.lng
-            },
-            googlePlaces: ranLatLonsData.nearbyPlaces,
-            hereBasedOnGoogle: ranLatLonsData.nearbyPlaces.map(place => {
-              const searchKey = `${place.name}-${place.formatted_address}`;
-              const hereResult = hereAddressResults[searchKey]?.result;
-              if (hereResult) {
-                const matchesGoogleResult = hereResult.matchesGoogle(place.formatted_address, place.name);
-                return { 
-                  name: hereResult.name,
-                  lat: hereResult.lat,
-                  lng: hereResult.lng,
-                  matchesGoogle: matchesGoogleResult,
-                  neededStreetSimilary: hereResult.updateNeededStreetSimilary(),
-                  neededDistanceMatch: hereResult.updateNeededDistanceMatch(),
-                  neededNameSimilarity: hereResult.updateNeededNameSimilarity(),
-                  address: hereResult.address,
-                  categoryHereType: hereResult.categoryHereType
-
-                };
-              }
-              return null;
-            }).filter(Boolean),
-            herePlaces: ranLatLonsData.hereNearbyPlaces,
-            googleBasedOnHere: ranLatLonsData.hereNearbyPlaces.map(place => {
-              const searchKey = `${place.name}-${place.address}`;
-              return googleGeocodingResults[searchKey]?.result || null;
-            }).filter(Boolean)
-          }))
+          group.ranLatLonss.map(ranLatLonsData => {
+            // Sort Google Places results
+            const sortedGooglePlaces = ranLatLonsData.nearbyPlaces
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((place, index) => ({ ...place, index: index + 1 }));
+  
+            // Sort HERE Places results
+            const sortedHerePlaces = ranLatLonsData.hereNearbyPlaces
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((place, index) => ({ ...place, index: index + 1 }));
+  
+            return {
+              subRegion: group.subregion_id,
+              latLng: {
+                lat: ranLatLonsData.ranLatLons.lat,
+                lng: ranLatLonsData.ranLatLons.lng
+              },
+              googlePlaces: sortedGooglePlaces,
+              hereBasedOnGoogle: sortedGooglePlaces.map(place => {
+                const searchKey = `${place.name}-${place.formatted_address}`;
+                const hereResult = hereAddressResults[searchKey]?.result;
+                if (hereResult) {
+                  const matchesGoogleResult = hereResult.matchesGoogle(place.formatted_address, place.name);
+                  return { 
+                    index: place.index,
+                    name: hereResult.name,
+                    lat: hereResult.lat,
+                    lng: hereResult.lng,
+                    matchesGoogle: matchesGoogleResult,
+                    neededStreetSimilary: hereResult.updateNeededStreetSimilary(),
+                    neededDistanceMatch: hereResult.updateNeededDistanceMatch(),
+                    neededNameSimilarity: hereResult.updateNeededNameSimilarity(),
+                    address: hereResult.address,
+                    categoryHereType: hereResult.categoryHereType
+                  };
+                }
+                return null;
+              }).filter(Boolean),
+              herePlaces: sortedHerePlaces,
+              googleBasedOnHere: sortedHerePlaces.map(place => {
+                const searchKey = `${place.name}-${place.address}`;
+                const googleResult = googleGeocodingResults[searchKey]?.result;
+                return googleResult ? { ...googleResult, index: place.index } : null;
+              }).filter(Boolean)
+            };
+          })
         )
       };
   
-      const response = await axios.post('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/save-results', dataToSave);
+   //   const response = await axios.post('https://j5s9dm7w-9000.inc1.devtunnels.ms/api/save-results', dataToSave);
+      const response = await axios.post('http://localhost:9000/api/save-results', dataToSave);
       if (response.data.success) {
         alert('Data saved successfully!');
         setIsSaved(true);
@@ -550,11 +563,11 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
       >
         {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save Results to MongoDB'}
       </Button>
-
+  
       <Button onClick={navigateToVisualization}>
         View Matching Data Visualization
       </Button>
-
+  
       <StyledTable>
         <thead>
           <tr>
@@ -562,178 +575,192 @@ const { groupedRLatLons, placeType, placeName } = location.state as { groupedRLa
             <StyledTh>LAT-LNG Coordinates</StyledTh>
             <StyledTh>Google Places API Results</StyledTh>
             <StyledTh>HERE API Results Based on Google Results</StyledTh>
-            <StyledTh>HERE API Results</StyledTh>
-            <StyledTh>Google API Results Based on HERE Results</StyledTh>
+            {/* <StyledTh>HERE API Results</StyledTh>
+            <StyledTh>Google API Results Based on HERE Results</StyledTh> */}
           </tr>
         </thead>
         <tbody>
           {groupedRLatLons.map((group) => (
-            group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => (
-              <tr key={`${group.subregion_id}-${ranLatLonsIndex}`}>
-                {ranLatLonsIndex === 0 && (
-                  <StyledTd rowSpan={group.ranLatLonss.length}>
-                    {group.subregion_id}
+            group.ranLatLonss.map((ranLatLonsData, ranLatLonsIndex) => {
+              const sortedGooglePlaces = ranLatLonsData.nearbyPlaces
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((place, index) => ({ ...place, index: index + 1 }));
+  
+              const sortedHerePlaces = ranLatLonsData.hereNearbyPlaces
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((place, index) => ({ ...place, index: index + 1 }));
+  
+              return (
+                <tr key={`${group.subregion_id}-${ranLatLonsIndex}`}>
+                  {ranLatLonsIndex === 0 && (
+                    <StyledTd rowSpan={group.ranLatLonss.length}>
+                      {group.subregion_id}
+                    </StyledTd>
+                  )}
+                  <StyledTd>
+                    ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
                   </StyledTd>
-                )}
-                <StyledTd>
-                  ({ranLatLonsData.ranLatLons.lat.toFixed(6)}, {ranLatLonsData.ranLatLons.lng.toFixed(6)})
-                </StyledTd>
-                <StyledTd>
-                  <InnerTable>
-                    <thead>
-                      <tr>
-                        <InnerTh>Name</InnerTh>
-                        <InnerTh>Type</InnerTh>
-                        <InnerTh>Address</InnerTh>
-                        <InnerTh>Coordinates</InnerTh>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ranLatLonsData.nearbyPlaces.length > 0 ? (
-                        ranLatLonsData.nearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
-                          <tr key={`google-${placeIndex}`}>
-                            <td style={innerTableCellStyle}>{place.name}</td>
-                            <td style={innerTableCellStyle}>{place.types ? place.types[0] : 'N/A'}</td>
-                            <td style={innerTableCellStyle}>{place.formatted_address}</td>
-                            <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
-                          </tr>
-                        ))
-                      ) : (
+                  <StyledTd>
+                    <InnerTable>
+                      <thead>
                         <tr>
-                          <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          <InnerTh>Index</InnerTh>
+                          <InnerTh>Name</InnerTh>
+                          <InnerTh>Type</InnerTh>
+                          <InnerTh>Address</InnerTh>
+                          <InnerTh>Coordinates</InnerTh>
                         </tr>
-                      )}
-                    </tbody>
-                  </InnerTable>
-                </StyledTd>
-                <StyledTd>
-                  <InnerTable>
-                    <thead>
-                      <tr>
-                        <InnerTh>Name</InnerTh>
-                        <InnerTh>Coordinates</InnerTh>
-                        <InnerTh>Status</InnerTh>
-                        <InnerTh>Matches Google</InnerTh>
-                        <InnerTh>Distance Diff (km)</InnerTh>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ranLatLonsData.nearbyPlaces.length > 0 ? (
-                        ranLatLonsData.nearbyPlaces
-                          .map(place => {
+                      </thead>
+                      <tbody>
+                        {sortedGooglePlaces.length > 0 ? (
+                          sortedGooglePlaces.map((place) => (
+                            <tr key={`google-${place.index}`}>
+                              <td style={innerTableCellStyle}>{place.index}</td>
+                              <td style={innerTableCellStyle}>{place.name}</td>
+                              <td style={innerTableCellStyle}>{place.types ? place.types[0] : 'N/A'}</td>
+                              <td style={innerTableCellStyle}>{place.formatted_address}</td>
+                              <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={5} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </InnerTable>
+                  </StyledTd>
+                  <StyledTd>
+                    <InnerTable>
+                      <thead>
+                        <tr>
+                          <InnerTh>Index</InnerTh>
+                          <InnerTh>Name</InnerTh>
+                          <InnerTh>Coordinates</InnerTh>
+                          <InnerTh>Status</InnerTh>
+                          <InnerTh>Matches Google</InnerTh>
+                          <InnerTh>Distance Diff (km)</InnerTh>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedGooglePlaces.length > 0 ? (
+                          sortedGooglePlaces.map((place) => {
                             const searchKey = `${place.name}-${place.formatted_address}`;
-                            return { ...place, hereResultState: hereAddressResults[searchKey] };
+                            const hereResult = hereAddressResults[searchKey]?.result;
+                            return (
+                              <tr key={`here-google-${place.index}`}>
+                                <td style={innerTableCellStyle}>{place.index}</td>
+                                <td style={innerTableCellStyle}>{hereResult?.name || 'N/A'}</td>
+                                <td style={innerTableCellStyle}>
+                                  {hereResult
+                                    ? `(${hereResult.lat.toFixed(6)}, ${hereResult.lng.toFixed(6)})`
+                                    : 'N/A'}
+                                </td>
+                                <td style={innerTableCellStyle}>
+                                  {hereAddressResults[searchKey]?.loading ? 'Loading...' :
+                                    hereAddressResults[searchKey]?.error ? `Error: ${hereAddressResults[searchKey].error}` :
+                                      'Completed'}
+                                </td>
+                                <td style={innerTableCellStyle}>
+                                  {hereResult?.matchesGoogle &&
+                                    hereResult.matchesGoogle(place.formatted_address, place.name)
+                                    ? 'Data matches with Google'
+                                    : 'Data doesn\'t match with Google'}
+                                </td>
+                                <td style={innerTableCellStyle}>
+                                  {hereResult
+                                    ? calculateDistance(
+                                      place.lat,
+                                      place.lng,
+                                      hereResult.lat,
+                                      hereResult.lng
+                                    ).toFixed(3)
+                                    : 'N/A'}
+                                </td>
+                              </tr>
+                            );
                           })
-                          .sort((a, b) => a.name.localeCompare(b.name))
-                          .map((place, placeIndex) => (
-                            <tr key={`here-google-${placeIndex}`}>
-                              <td style={innerTableCellStyle}>{place.hereResultState?.result?.name || 'N/A'}</td>
-                              <td style={innerTableCellStyle}>
-                                {place.hereResultState?.result
-                                  ? `(${place.hereResultState.result.lat.toFixed(6)}, ${place.hereResultState.result.lng.toFixed(6)})`
-                                  : 'N/A'}
-                              </td>
-                              <td style={innerTableCellStyle}>
-                                {place.hereResultState?.loading ? 'Loading...' :
-                                  place.hereResultState?.error ? `Error: ${place.hereResultState.error}` :
-                                    'Completed'}
-                              </td>
-                              <td style={innerTableCellStyle}>
-                                {place.hereResultState?.result?.matchesGoogle &&
-                                  place.hereResultState.result.matchesGoogle(place.formatted_address, place.name)
-                                  ? 'Data matches with Google'
-                                  : 'Data doesn\'t match with Google'}
-                              </td>
-                              <td style={innerTableCellStyle}>
-                                {place.hereResultState?.result
-                                  ? calculateDistance(
-                                    place.lat,
-                                    place.lng,
-                                    place.hereResultState.result.lat,
-                                    place.hereResultState.result.lng
-                                  ).toFixed(3)
-                                  : 'N/A'}
-                              </td>
-                            </tr>
-                          ))
-                      ) : (
-                        <tr>
-                          <td colSpan={5} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </InnerTable>
-                </StyledTd>
-                <StyledTd>
-                  <InnerTable>
-                    <thead>
-                      <tr>
-                        <InnerTh>Name</InnerTh>
-                        <InnerTh>Type</InnerTh>
-                        <InnerTh>Address</InnerTh>
-                        <InnerTh>Coordinates</InnerTh>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ranLatLonsData.hereNearbyPlaces.length > 0 ? (
-                        ranLatLonsData.hereNearbyPlaces.sort((a, b) => a.name.localeCompare(b.name)).map((place, placeIndex) => (
-                          <tr key={`here-${placeIndex}`}>
-                            <td style={innerTableCellStyle}>{place.name}</td>
-                            <td style={innerTableCellStyle}>{place.categoryType || 'N/A'}</td>
-                            <td style={innerTableCellStyle}>{place.address}</td>
-                            <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
+                        ) : (
+                          <tr>
+                            <td colSpan={6} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
                           </tr>
-                        ))
-                      ) : (
+                        )}
+                      </tbody>
+                    </InnerTable>
+                  </StyledTd>
+                  {/* <StyledTd>
+                    <InnerTable>
+                      <thead>
                         <tr>
-                          <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          <InnerTh>Index</InnerTh>
+                          <InnerTh>Name</InnerTh>
+                          <InnerTh>Type</InnerTh>
+                          <InnerTh>Address</InnerTh>
+                          <InnerTh>Coordinates</InnerTh>
                         </tr>
-                      )}
-                    </tbody>
-                  </InnerTable>
-                </StyledTd>
-                <StyledTd>
-                  <InnerTable>
-                    <thead>
-                      <tr>
-                        <InnerTh>Name</InnerTh>
-                        <InnerTh>Coordinates</InnerTh>
-                        <InnerTh>Status</InnerTh>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ranLatLonsData.hereNearbyPlaces.length > 0 ? (
-                        ranLatLonsData.hereNearbyPlaces
-                          .map(place => {
-                            const searchKey = `${place.name}-${place.address}`;
-                            return { ...place, googleResultState: googleGeocodingResults[searchKey] };
-                          })
-                          .sort((a, b) => a.name.localeCompare(b.name))
-                          .map((place, placeIndex) => (
-                            <tr key={`google-here-${placeIndex}`}>
-                              <td style={innerTableCellStyle}>{place.googleResultState?.result?.name || 'N/A'}</td>
-                              <td style={innerTableCellStyle}>
-                                {place.googleResultState?.result
-                                  ? `(${place.googleResultState.result.lat.toFixed(6)}, ${place.googleResultState.result.lng.toFixed(6)})`
-                                  : 'N/A'}
-                              </td>
-                              <td style={innerTableCellStyle}>
-                                {place.googleResultState?.loading ? 'Loading...' :
-                                  place.googleResultState?.error ? `Error: ${place.googleResultState.error}` :
-                                    'Completed'}
-                              </td>
+                      </thead>
+                      <tbody>
+                        {sortedHerePlaces.length > 0 ? (
+                          sortedHerePlaces.map((place) => (
+                            <tr key={`here-${place.index}`}>
+                              <td style={innerTableCellStyle}>{place.index}</td>
+                              <td style={innerTableCellStyle}>{place.name}</td>
+                              <td style={innerTableCellStyle}>{place.categoryType || 'N/A'}</td>
+                              <td style={innerTableCellStyle}>{place.address}</td>
+                              <td style={innerTableCellStyle}>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</td>
                             </tr>
                           ))
-                      ) : (
+                        ) : (
+                          <tr>
+                            <td colSpan={5} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </InnerTable>
+                  </StyledTd> */}
+                  {/* <StyledTd>
+                    <InnerTable>
+                      <thead>
                         <tr>
-                          <td colSpan={3} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          <InnerTh>Index</InnerTh>
+                          <InnerTh>Name</InnerTh>
+                          <InnerTh>Coordinates</InnerTh>
+                          <InnerTh>Status</InnerTh>
                         </tr>
-                      )}
-                    </tbody>
-                  </InnerTable>
-                </StyledTd>
-              </tr>
-            ))
+                      </thead>
+                      <tbody>
+                        {sortedHerePlaces.length > 0 ? (
+                          sortedHerePlaces.map((place) => {
+                            const searchKey = `${place.name}-${place.address}`;
+                            const googleResult = googleGeocodingResults[searchKey]?.result;
+                            return (
+                              <tr key={`google-here-${place.index}`}>
+                                <td style={innerTableCellStyle}>{place.index}</td>
+                                <td style={innerTableCellStyle}>{googleResult?.name || 'N/A'}</td>
+                                <td style={innerTableCellStyle}>
+                                  {googleResult
+                                    ? `(${googleResult.lat.toFixed(6)}, ${googleResult.lng.toFixed(6)})`
+                                    : 'N/A'}
+                                </td>
+                                <td style={innerTableCellStyle}>
+                                  {googleGeocodingResults[searchKey]?.loading ? 'Loading...' :
+                                    googleGeocodingResults[searchKey]?.error ? `Error: ${googleGeocodingResults[searchKey].error}` :
+                                      'Completed'}
+                                </td>
+                              </tr>
+                            );
+                          })
+                        ) : (
+                          <tr>
+                            <td colSpan={4} style={innerTableCellStyle}>No API key found or error in API or No results found</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </InnerTable>
+                  </StyledTd> */}
+                </tr>
+              );
+            })
           ))}
         </tbody>
       </StyledTable>

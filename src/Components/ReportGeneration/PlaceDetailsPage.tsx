@@ -61,10 +61,16 @@ const Button = styled.button`
 
 interface PlaceDetails {
   placeName: string;
+  placeType: {
+    label: string;
+    googleValue: string;
+    hereValue: string;
+  };
   results: Array<{
-    latLng: { lat: number; lng: number };
     subRegion: number;
+    latLng: { lat: number; lng: number };
     googlePlaces: Array<{
+      index: number;
       types: string[];
       name: string;
       formatted_address: string;
@@ -72,6 +78,7 @@ interface PlaceDetails {
       lng: number;
     }>;
     hereBasedOnGoogle: Array<{
+      index: number;
       name: string;
       lat: number;
       lng: number;
@@ -80,9 +87,10 @@ interface PlaceDetails {
       neededDistanceMatch: boolean;
       neededNameSimilarity: boolean;
       address: string;
-      categoryHereType : string;
+      categoryHereType: string;
     }>;
     herePlaces: Array<{
+      index: number;
       categoryType: string;
       name: string;
       address: string;
@@ -90,12 +98,14 @@ interface PlaceDetails {
       lng: number;
     }>;
     googleBasedOnHere: Array<{
+      index: number;
       name: string;
       lat: number;
       lng: number;
-    } | null>;
+    }>;
   }>;
 }
+
 
 const PlaceDetailsPage: React.FC = () => {
   const location = useLocation();
@@ -119,7 +129,8 @@ const PlaceDetailsPage: React.FC = () => {
   useEffect(() => {
     const fetchPlaceDetails = async () => {
       try {
-        const response = await axios.get(`https://j5s9dm7w-9000.inc1.devtunnels.ms/api/place/${passedPlaceName}`);
+        // const response = await axios.get(`https://j5s9dm7w-9000.inc1.devtunnels.ms/api/place/${passedPlaceName}`);
+        const response = await axios.get(`http://localhost:9000/api/place/${passedPlaceName}`);
         setPlaceDetails(response.data.placeDetails);
         const matchingData = calculateMatchingData(response.data.placeDetails);
         setMatchingData(matchingData);
@@ -142,7 +153,7 @@ const PlaceDetailsPage: React.FC = () => {
     let notNeededDistanceSimilarity = 0;
     let neededNameSimilarity = 0;
     let notNeededNameSimilarity = 0;
-  
+
     details.results.forEach(result => {
       result.hereBasedOnGoogle.forEach(place => {
         if (place.matchesGoogle) {
@@ -167,70 +178,91 @@ const PlaceDetailsPage: React.FC = () => {
         }
       });
     });
-  
+
     return { matches, nonMatches, neededStreetSimilarity, notNeededStreetSimilarity, neededDistanceSimilarity, notNeededDistanceSimilarity, neededNameSimilarity, notNeededNameSimilarity };
   };
 
   const navigateToVisualization_GoogleMatches = () => {
-    const nonMatchingDetails = placeDetails?.results.flatMap(result => 
-      result.hereBasedOnGoogle.filter(place => !place.matchesGoogle)
+    const nonMatchingDetails = placeDetails?.results.flatMap(result =>
+      result.hereBasedOnGoogle.filter(place => !place.matchesGoogle).map(place => ({
+        ...place,
+        googlePlace: result.googlePlaces.find(gp => gp.index === place.index)
+      }))
     );
-    navigate('/visualizationmatchesgoogle', { 
-      state: { 
+    navigate('/visualizationmatchesgoogle', {
+      state: {
         matchingData,
         nonMatchingDetails
-      } 
+      }
     });
   };
-  
+
   const navigateToVisualization_StreetSimilarity = () => {
     const neededStreetSimilarityDetails = placeDetails?.results.flatMap(result =>
-      result.hereBasedOnGoogle.filter(place => place.neededStreetSimilary)
+      result.hereBasedOnGoogle.filter(place => place.neededStreetSimilary).map(place => ({
+        ...place,
+        googlePlace: result.googlePlaces.find(gp => gp.index === place.index)
+      }))
     );
     const notNeededStreetSimilarityDetails = placeDetails?.results.flatMap(result =>
-      result.hereBasedOnGoogle.filter(place => !place.neededStreetSimilary)
+      result.hereBasedOnGoogle.filter(place => !place.neededStreetSimilary).map(place => ({
+        ...place,
+        googlePlace: result.googlePlaces.find(gp => gp.index === place.index)
+      }))
     );
-    navigate('/visualizationstreet', { 
-      state: { 
-        neededStreetSimilarity: matchingData.neededStreetSimilarity, 
-        notNeededStreetSimilarity: matchingData.notNeededStreetSimilarity, 
+    navigate('/visualizationstreet', {
+      state: {
+        neededStreetSimilarity: matchingData.neededStreetSimilarity,
+        notNeededStreetSimilarity: matchingData.notNeededStreetSimilarity,
         neededStreetSimilarityDetails,
-        notNeededStreetSimilarityDetails 
-      } 
+        notNeededStreetSimilarityDetails
+      }
     });
   };
 
   const navigateToVisualization_DistanceSimilarity = () => {
     const neededDistanceDetails = placeDetails?.results.flatMap(result =>
-      result.hereBasedOnGoogle.filter(place => place.neededDistanceMatch)
+      result.hereBasedOnGoogle.filter(place => place.neededDistanceMatch).map(place => ({
+        ...place,
+        googlePlace: result.googlePlaces.find(gp => gp.index === place.index)
+      }))
     );
     const notNeededDistanceDetails = placeDetails?.results.flatMap(result =>
-      result.hereBasedOnGoogle.filter(place => !place.neededDistanceMatch)
+      result.hereBasedOnGoogle.filter(place => !place.neededDistanceMatch).map(place => ({
+        ...place,
+        googlePlace: result.googlePlaces.find(gp => gp.index === place.index)
+      }))
     );
-    navigate('/visualizationdistance', { 
-      state: { 
-        neededDistanceSimilarity: matchingData.neededDistanceSimilarity, 
-        notNeededDistanceSimilarity: matchingData.notNeededDistanceSimilarity, 
+    navigate('/visualizationdistance', {
+      state: {
+        neededDistanceSimilarity: matchingData.neededDistanceSimilarity,
+        notNeededDistanceSimilarity: matchingData.notNeededDistanceSimilarity,
         neededDistanceDetails,
-        notNeededDistanceDetails 
-      } 
+        notNeededDistanceDetails
+      }
     });
   };
 
   const navigateToVisualization_NameSimilarity = () => {
     const neededNameDetails = placeDetails?.results.flatMap(result =>
-      result.hereBasedOnGoogle.filter(place => place.neededNameSimilarity)
+      result.hereBasedOnGoogle.filter(place => place.neededNameSimilarity).map(place => ({
+        ...place,
+        googlePlace: result.googlePlaces.find(gp => gp.index === place.index)
+      }))
     );
     const notNeededNameDetails = placeDetails?.results.flatMap(result =>
-      result.hereBasedOnGoogle.filter(place => !place.neededNameSimilarity)
+      result.hereBasedOnGoogle.filter(place => !place.neededNameSimilarity).map(place => ({
+        ...place,
+        googlePlace: result.googlePlaces.find(gp => gp.index === place.index)
+      }))
     );
-    navigate('/visualizationname', { 
-      state: { 
-        neededNameSimilarity: matchingData.neededNameSimilarity, 
-        notNeededNameSimilarity: matchingData.notNeededNameSimilarity, 
+    navigate('/visualizationname', {
+      state: {
+        neededNameSimilarity: matchingData.neededNameSimilarity,
+        notNeededNameSimilarity: matchingData.notNeededNameSimilarity,
         neededNameDetails,
-        notNeededNameDetails 
-      } 
+        notNeededNameDetails
+      }
     });
   };
 
@@ -248,17 +280,17 @@ const PlaceDetailsPage: React.FC = () => {
       <h1>Search Results</h1>
       <p>Place Name: {placeDetails?.placeName || 'N/A'}</p>
       <Button onClick={navigateToVisualization_GoogleMatches}>
-  View Matching Data Visualization
-</Button>
-<Button onClick={navigateToVisualization_StreetSimilarity}>
-  Street Similarity Visualization
-</Button>
-<Button onClick={navigateToVisualization_DistanceSimilarity}>
-  Distance Visualization
-</Button>
-<Button onClick={navigateToVisualization_NameSimilarity}>
-  Name Visualization 
-</Button>
+        Matching Data
+      </Button>
+      <Button onClick={navigateToVisualization_StreetSimilarity}>
+        Street Similarity Visualization
+      </Button>
+      <Button onClick={navigateToVisualization_DistanceSimilarity}>
+        Distance Visualization
+      </Button>
+      <Button onClick={navigateToVisualization_NameSimilarity}>
+        Name Visualization
+      </Button>
 
       {placeDetails?.results && placeDetails.results.length > 0 ? (
         <StyledTable>
@@ -283,6 +315,7 @@ const PlaceDetailsPage: React.FC = () => {
                   <InnerTable>
                     <thead>
                       <tr>
+                        <InnerTableHeader>Index</InnerTableHeader>
                         <InnerTableHeader>Name</InnerTableHeader>
                         <InnerTableHeader>Type</InnerTableHeader>
                         <InnerTableHeader>Address</InnerTableHeader>
@@ -290,8 +323,9 @@ const PlaceDetailsPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {result.googlePlaces.map((place, placeIndex) => (
-                        <tr key={placeIndex}>
+                      {result.googlePlaces.map((place) => (
+                        <tr key={place.index}>
+                          <InnerTableCell>{place.index}</InnerTableCell>
                           <InnerTableCell>{place.name}</InnerTableCell>
                           <InnerTableCell>{place.types.join(', ')}</InnerTableCell>
                           <InnerTableCell>{place.formatted_address}</InnerTableCell>
@@ -305,6 +339,7 @@ const PlaceDetailsPage: React.FC = () => {
                   <InnerTable>
                     <thead>
                       <tr>
+                        <InnerTableHeader>Index</InnerTableHeader>
                         <InnerTableHeader>Name</InnerTableHeader>
                         <InnerTableHeader>Type</InnerTableHeader>
                         <InnerTableHeader>Address</InnerTableHeader>
@@ -316,8 +351,9 @@ const PlaceDetailsPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {result.hereBasedOnGoogle.map((place, placeIndex) => (
-                        <tr key={placeIndex}>
+                      {result.hereBasedOnGoogle.map((place) => (
+                        <tr key={place.index}>
+                          <InnerTableCell>{place.index}</InnerTableCell>
                           <InnerTableCell>{place.name}</InnerTableCell>
                           <InnerTableCell>{place.categoryHereType}</InnerTableCell>
                           <InnerTableCell>{place.address}</InnerTableCell>
@@ -335,6 +371,7 @@ const PlaceDetailsPage: React.FC = () => {
                   <InnerTable>
                     <thead>
                       <tr>
+                      <InnerTableHeader>Index</InnerTableHeader>
                         <InnerTableHeader>Name</InnerTableHeader>
                         <InnerTableHeader>Type</InnerTableHeader>
                         <InnerTableHeader>Address</InnerTableHeader>
@@ -342,8 +379,9 @@ const PlaceDetailsPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {result.herePlaces.map((place, placeIndex) => (
-                        <tr key={placeIndex}>
+                     {result.herePlaces.map((place) => (
+                        <tr key={place.index}>
+                          <InnerTableCell>{place.index}</InnerTableCell>
                           <InnerTableCell>{place.name}</InnerTableCell>
                           <InnerTableCell>{place.categoryType}</InnerTableCell>
                           <InnerTableCell>{place.address}</InnerTableCell>
@@ -357,17 +395,17 @@ const PlaceDetailsPage: React.FC = () => {
                   <InnerTable>
                     <thead>
                       <tr>
+                         <InnerTableHeader>Index</InnerTableHeader>
                         <InnerTableHeader>Name</InnerTableHeader>
                         <InnerTableHeader>Coordinates</InnerTableHeader>
                       </tr>
                     </thead>
                     <tbody>
-                      {result.googleBasedOnHere.map((place, placeIndex) => (
-                        <tr key={placeIndex}>
-                          <InnerTableCell>{place ? place.name : 'N/A'}</InnerTableCell>
-                          <InnerTableCell>
-                            {place ? `(${place.lat.toFixed(6)}, ${place.lng.toFixed(6)})` : 'N/A'}
-                          </InnerTableCell>
+                       {result.googleBasedOnHere.map((place) => (
+                        <tr key={place.index}>
+                          <InnerTableCell>{place.index}</InnerTableCell>
+                          <InnerTableCell>{place.name}</InnerTableCell>
+                          <InnerTableCell>({place.lat.toFixed(6)}, {place.lng.toFixed(6)})</InnerTableCell>
                         </tr>
                       ))}
                     </tbody>
